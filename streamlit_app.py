@@ -191,7 +191,7 @@ if mode == "Manual Input":
     st.plotly_chart(gauge, use_container_width=True)
 
     st.markdown("---")
-    st.markdown("###Download Your Forecast")
+    st.markdown("### Download Your Forecast")
     export_df = pd.DataFrame([data])
     csv = export_df.to_csv(index=False).encode('utf-8')
     st.download_button(
