@@ -1,5 +1,1 @@
 streamlit>=1.26.0
-pandas
-plotly.graph_objects
-plotly.express
-io
