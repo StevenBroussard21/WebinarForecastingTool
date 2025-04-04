@@ -48,7 +48,7 @@ industry_benchmarks = {
     "Consulting": {"landing_cr": 30, "attendance_rate": 60, "lead_rate": 35, "sales_rate": 25, "cpc": 3.0}
 }
 
-with st.expander("📘 Look up Industry Benchmarks"):
+with st.expander("Look up Industry Benchmarks"):
     selected_industry = st.selectbox("Select your industry:", list(industry_benchmarks.keys()))
     if selected_industry:
         bm = industry_benchmarks[selected_industry]
@@ -66,11 +66,11 @@ if mode == "Manual Input":
     use_benchmarks = st.session_state.get("use_benchmarks", False)
     bm_values = st.session_state.get("benchmark_values", benchmarks)
 
-    with st.sidebar.expander("💰 Budget & Cost"):
+    with st.sidebar.expander("Budget & Cost"):
         budget = st.number_input("Total Ad Budget ($)", min_value=0.0, value=1000.0)
         cpc = st.number_input("Estimated Cost Per Click ($)", min_value=0.01, value=bm_values.get("cpc", 1.5))
 
-    with st.sidebar.expander("📈 Funnel Conversion Rates"):
+    with st.sidebar.expander("Funnel Conversion Rates"):
         landing_cr = st.slider("Landing Page Conversion Rate (%)", 0, 100, bm_values.get("landing_cr", 25))
         attendance_rate = st.slider("Signup to Attendee Rate (%)", 0, 100, bm_values.get("attendance_rate", 50))
         lead_rate = st.slider("Attendee to Qualified Lead Rate (%)", 0, 100, bm_values.get("lead_rate", 30))
@@ -81,7 +81,7 @@ if mode == "Manual Input":
             help="Use if every attendee is highly relevant or gets follow-up."
         )
 
-    with st.sidebar.expander("🎁 Product Details"):
+    with st.sidebar.expander("Product Details"):
         avg_deal_value = st.number_input("Average Deal Value ($)", min_value=0.0, value=500.0)
         cogs_per_sale = st.number_input("Cost of Goods per Sale ($)", min_value=0.0, value=100.0)
 
