@@ -188,9 +188,6 @@ with forecast_tab:
 # --------------------------
 # TAB 2: Multi-Channel Budget Planner
 # --------------------------
-# --------------------------
-# TAB 2: Multi-Channel Budget Planner
-# --------------------------
 with planner_tab:
     st.markdown("## 💰 Multi-Channel Budget Planner")
     st.markdown("Distribute your ad budget across platforms and forecast performance based on campaign KPIs.")
@@ -220,31 +217,53 @@ with planner_tab:
 
         st.markdown("### Customize Cost per Result")
         results = []
+        total_forecast = 0
         for ch in channels:
             cost = st.number_input(
                 f"{ch} - Cost per {kpi_goal}",
-                value=float(default_kpis[kpi_goal][ch]),  # ✅ cast to float
+                value=float(default_kpis[kpi_goal][ch]),
                 min_value=0.01,
                 step=0.01,
                 key=f"cost_{ch}"
             )
             budget_ch = (allocations[ch] / 100) * total_budget
             if kpi_goal == "Impressions":
-                forecast = (budget_ch / cost) * 1000  # CPM logic
+                forecast = (budget_ch / cost) * 1000
             else:
                 forecast = budget_ch / cost
+            total_forecast += forecast
+
+            # ROI estimation (only if goal is Leads or Sales)
+            est_revenue = 0
+            if kpi_goal == "Sales":
+                avg_order_value = st.number_input("Average Order Value ($)", value=250.0, step=10.0, key="aov")
+                est_revenue = forecast * avg_order_value
+            elif kpi_goal == "Leads":
+                est_lead_value = st.number_input("Estimated Value per Lead ($)", value=50.0, step=5.0, key="lead_val")
+                est_revenue = forecast * est_lead_value
+
+            roi = (est_revenue - budget_ch) / budget_ch * 100 if budget_ch > 0 else 0 if est_revenue > 0 else 0
+
             results.append({
                 "Channel": ch,
                 "Allocated Budget ($)": round(budget_ch, 2),
                 f"Cost per {kpi_goal}": round(cost, 2),
-                f"Forecasted {kpi_goal}": int(forecast)
+                f"Forecasted {kpi_goal}": int(forecast),
+                "Estimated Revenue ($)": round(est_revenue, 2) if est_revenue > 0 else None,
+                "ROI (%)": round(roi, 2) if est_revenue > 0 else None
             })
 
         result_df = pd.DataFrame(results)
-        st.markdown("### 📊 Forecasted Performance")
+        st.markdown("### 📊 Forecasted Performance by Channel")
         st.dataframe(result_df)
+
+        st.markdown(f"### 📈 Total Forecasted {kpi_goal}: **{int(total_forecast):,}**")
+
         chart = px.bar(result_df, x="Channel", y=f"Forecasted {kpi_goal}", color="Channel", title=f"Forecasted {kpi_goal} by Channel")
         st.plotly_chart(chart, use_container_width=True)
+
+        csv_out = result_df.to_csv(index=False).encode("utf-8")
+        st.download_button("Download Channel KPI Forecast as CSV", data=csv_out, file_name="kpi_budget_forecast.csv", mime="text/csv")
 
         csv_out = result_df.to_csv(index=False).encode("utf-8")
         st.download_button("Download Channel KPI Forecast as CSV", data=csv_out, file_name="kpi_budget_forecast.csv", mime="text/csv")
