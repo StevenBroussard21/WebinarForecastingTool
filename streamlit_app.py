@@ -239,6 +239,7 @@ with planner_tab:
 
             est_revenue = 0
             roi = None
+            break_even_cpr = None
 
             if enable_roi:
                 if kpi_goal == "Sales":
@@ -249,6 +250,7 @@ with planner_tab:
                         key=f"aov_{ch}"
                     )
                     est_revenue = forecast * avg_order_value
+                    break_even_cpr = avg_order_value
                 elif kpi_goal == "Leads":
                     est_lead_value = st.number_input(
                         f"Estimated Value per Lead ($) - {ch}",
@@ -258,6 +260,7 @@ with planner_tab:
                         help="Average revenue you earn per lead. For example, if your product is $500 and you convert 10% of leads, enter $50."
                     )
                     est_revenue = forecast * est_lead_value
+                    break_even_cpr = est_lead_value
                 if est_revenue > 0:
                     roi = (est_revenue - budget_ch) / budget_ch * 100 if budget_ch > 0 else 0
 
@@ -268,18 +271,27 @@ with planner_tab:
                 f"Cost per {kpi_goal}": round(cost, 2),
                 f"Forecasted {kpi_goal}": int(forecast),
                 "Cost per Result ($)": round(cost_per_result, 2),
+                "Break-even CPR ($)": round(break_even_cpr, 2) if enable_roi and break_even_cpr is not None else None,
                 "Estimated Revenue ($)": round(est_revenue, 2) if enable_roi else None,
                 "ROI (%)": round(roi, 2) if enable_roi and roi is not None else None
             })
 
         result_df = pd.DataFrame(results)
+
         st.markdown("### 📊 Forecasted Performance by Channel")
-        st.dataframe(result_df)
+        def highlight_expensive(s):
+            return ["background-color: #ffe6e6" if (s["Break-even CPR ($)"] is not None and s["Cost per Result ($)"] > s["Break-even CPR ($)"]) else "" for i in s.index]
+
+        styled_df = result_df.style.apply(highlight_expensive, axis=1)
+        st.dataframe(styled_df)
 
         st.markdown(f"### 📈 Total Forecasted {kpi_goal}: **{int(total_forecast):,}**")
 
         chart = px.bar(result_df, x="Channel", y=f"Forecasted {kpi_goal}", color="Channel", title=f"Forecasted {kpi_goal} by Channel")
         st.plotly_chart(chart, use_container_width=True)
+
+        cost_chart = px.bar(result_df, x="Channel", y="Cost per Result ($)", color="Channel", title="Cost per Result by Channel")
+        st.plotly_chart(cost_chart, use_container_width=True)
 
         csv_out = result_df.to_csv(index=False).encode("utf-8")
         st.download_button("Download Channel KPI Forecast as CSV", data=csv_out, file_name="kpi_budget_forecast.csv", mime="text/csv")
