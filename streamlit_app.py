@@ -218,6 +218,9 @@ with planner_tab:
         st.markdown("### Customize Cost per Result")
         results = []
         total_forecast = 0
+        total_revenue = 0
+        total_roi = 0
+        roi_count = 0
 
         enable_roi = st.checkbox("Estimate revenue and ROI?")
         st.caption("(Optional) Turn on if you want to forecast revenue based on the value of each lead or sale.")
@@ -240,6 +243,7 @@ with planner_tab:
             est_revenue = 0
             roi = None
             break_even_cpr = None
+            warning_msg = ""
 
             if enable_roi:
                 if kpi_goal == "Sales":
@@ -263,6 +267,11 @@ with planner_tab:
                     break_even_cpr = est_lead_value
                 if est_revenue > 0:
                     roi = (est_revenue - budget_ch) / budget_ch * 100 if budget_ch > 0 else 0
+                    total_revenue += est_revenue
+                    total_roi += roi
+                    roi_count += 1
+                    if roi < 0:
+                        warning_msg = "⚠️ Negative ROI"
 
             cost_per_result = budget_ch / forecast if forecast > 0 else 0
             results.append({
@@ -273,7 +282,8 @@ with planner_tab:
                 "Cost per Result ($)": round(cost_per_result, 2),
                 "Break-even CPR ($)": round(break_even_cpr, 2) if enable_roi and break_even_cpr is not None else None,
                 "Estimated Revenue ($)": round(est_revenue, 2) if enable_roi else None,
-                "ROI (%)": round(roi, 2) if enable_roi and roi is not None else None
+                "ROI (%)": round(roi, 2) if enable_roi and roi is not None else None,
+                "Notes": warning_msg
             })
 
         result_df = pd.DataFrame(results)
@@ -286,6 +296,11 @@ with planner_tab:
         st.dataframe(styled_df)
 
         st.markdown(f"### 📈 Total Forecasted {kpi_goal}: **{int(total_forecast):,}**")
+
+        if enable_roi:
+            avg_roi = total_roi / roi_count if roi_count > 0 else 0
+            st.metric("Total Estimated Revenue", f"${total_revenue:,.2f}")
+            st.metric("Average ROI Across Channels", f"{avg_roi:.2f}%")
 
         chart = px.bar(result_df, x="Channel", y=f"Forecasted {kpi_goal}", color="Channel", title=f"Forecasted {kpi_goal} by Channel")
         st.plotly_chart(chart, use_container_width=True)
