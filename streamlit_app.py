@@ -188,6 +188,9 @@ with forecast_tab:
 # --------------------------
 # TAB 2: Multi-Channel Budget Planner
 # --------------------------
+# --------------------------
+# TAB 2: Multi-Channel Budget Planner
+# --------------------------
 with planner_tab:
     st.markdown("## 💰 Multi-Channel Budget Planner")
     st.markdown("Distribute your ad budget across platforms and forecast performance based on campaign KPIs.")
@@ -220,16 +223,22 @@ with planner_tab:
         for ch in channels:
             cost = st.number_input(
                 f"{ch} - Cost per {kpi_goal}",
-                value=default_kpis[kpi_goal][ch],
+                value=float(default_kpis[kpi_goal][ch]),  # ✅ cast to float
                 min_value=0.01,
+                step=0.01,
                 key=f"cost_{ch}"
             )
             budget_ch = (allocations[ch] / 100) * total_budget
             if kpi_goal == "Impressions":
-                forecast = (budget_ch / cost) * 1000
+                forecast = (budget_ch / cost) * 1000  # CPM logic
             else:
                 forecast = budget_ch / cost
-            results.append({"Channel": ch, "Allocated Budget ($)": round(budget_ch, 2), f"Cost per {kpi_goal}": round(cost, 2), f"Forecasted {kpi_goal}": int(forecast)})
+            results.append({
+                "Channel": ch,
+                "Allocated Budget ($)": round(budget_ch, 2),
+                f"Cost per {kpi_goal}": round(cost, 2),
+                f"Forecasted {kpi_goal}": int(forecast)
+            })
 
         result_df = pd.DataFrame(results)
         st.markdown("### 📊 Forecasted Performance")
@@ -239,4 +248,3 @@ with planner_tab:
 
         csv_out = result_df.to_csv(index=False).encode("utf-8")
         st.download_button("Download Channel KPI Forecast as CSV", data=csv_out, file_name="kpi_budget_forecast.csv", mime="text/csv")
-
