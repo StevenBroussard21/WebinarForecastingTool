@@ -33,8 +33,7 @@ with forecast_tab:
     # Sidebar Input Section
     st.sidebar.title("🔧 Configure Your Campaign")
     mode = st.sidebar.radio("Input Method", ["Manual Input", "Upload CSV Data"])
-        # Placeholder for sidebar functionality (Webinar Forecast sidebar content goes here)
-    st.write("Webinar Forecasting Tool Loaded")
+
     # Initialize variables
     data = {}
 
