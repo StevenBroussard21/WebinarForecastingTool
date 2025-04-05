@@ -193,7 +193,6 @@ with planner_tab:
     st.markdown("Distribute your ad budget across platforms and forecast performance based on campaign KPIs.")
 
     total_budget = st.number_input("Total Campaign Budget ($)", min_value=0.0, value=5000.0)
-
     kpi_goal = st.selectbox("Select your campaign goal:", ["Clicks", "Leads", "Sales", "Impressions"])
 
     channels = ["Meta", "Google", "LinkedIn", "YouTube", "TikTok"]
@@ -217,7 +216,27 @@ with planner_tab:
 
         st.markdown("### Customize Cost per Result")
         enable_roi = st.checkbox("Estimate revenue and ROI?")
-        st.caption("(Optional) Turn on if you want to forecast revenue based on the value of each lead or sale.")
+
+        use_roi_values = {}
+        if enable_roi:
+            st.caption("Enter the value per lead or sale for each platform.")
+            for ch in channels:
+                if kpi_goal == "Sales":
+                    use_roi_values[ch] = st.number_input(
+                        f"{ch} - Average Order Value ($)",
+                        min_value=1.0,
+                        value=250.0,
+                        step=10.0,
+                        key=f"roi_sale_{ch}"
+                    )
+                elif kpi_goal == "Leads":
+                    use_roi_values[ch] = st.number_input(
+                        f"{ch} - Value per Lead ($)",
+                        min_value=1.0,
+                        value=50.0,
+                        step=5.0,
+                        key=f"roi_lead_{ch}"
+                    )
 
         results = []
         total_forecast = 0
@@ -233,65 +252,44 @@ with planner_tab:
                 step=0.01,
                 key=f"cost_{ch}"
             )
-
             budget_ch = (allocations[ch] / 100) * total_budget
             forecast = (budget_ch / cost) * 1000 if kpi_goal == "Impressions" else budget_ch / cost
             total_forecast += forecast
 
-            est_revenue = 0
-            roi = None
+            cost_per_result = budget_ch / forecast if forecast > 0 else 0
             break_even_cpr = None
+            roi = None
+            revenue = None
             warning_msg = ""
 
-            if enable_roi:
-                if kpi_goal == "Sales":
-                    avg_order_value = st.number_input(
-                        f"Average Order Value ($) - {ch}",
-                        value=250.0,
-                        step=10.0,
-                        key=f"aov_{ch}"
-                    )
-                    est_revenue = forecast * avg_order_value
-                    break_even_cpr = avg_order_value
-                elif kpi_goal == "Leads":
-                    est_lead_value = st.number_input(
-                        f"Estimated Value per Lead ($) - {ch}",
-                        value=50.0,
-                        step=5.0,
-                        key=f"lead_val_{ch}",
-                        help="Average revenue you earn per lead. For example, if your product is $500 and you convert 10% of leads, enter $50."
-                    )
-                    est_revenue = forecast * est_lead_value
-                    break_even_cpr = est_lead_value
+            if enable_roi and ch in use_roi_values:
+                break_even_cpr = use_roi_values[ch]
+                revenue = forecast * break_even_cpr
+                roi = ((revenue - budget_ch) / budget_ch * 100) if budget_ch > 0 else 0
+                total_revenue += revenue
+                total_roi += roi
+                roi_count += 1
+                if roi < 0:
+                    warning_msg = "⚠️ Negative ROI"
 
-                if est_revenue > 0:
-                    roi = (est_revenue - budget_ch) / budget_ch * 100 if budget_ch > 0 else 0
-                    total_revenue += est_revenue
-                    total_roi += roi
-                    roi_count += 1
-                    if roi < 0:
-                        warning_msg = "⚠️ Negative ROI"
-
-            cost_per_result = budget_ch / forecast if forecast > 0 else 0
             results.append({
                 "Channel": ch,
                 "Allocated Budget ($)": round(budget_ch, 2),
                 f"Cost per {kpi_goal}": round(cost, 2),
                 f"Forecasted {kpi_goal}": int(forecast),
                 "Cost per Result ($)": round(cost_per_result, 2),
-                "Break-even CPR ($)": round(break_even_cpr, 2) if enable_roi and break_even_cpr is not None else None,
-                "Estimated Revenue ($)": round(est_revenue, 2) if enable_roi else None,
-                "ROI (%)": round(roi, 2) if enable_roi and roi is not None else None,
+                "Break-even CPR ($)": round(break_even_cpr, 2) if break_even_cpr else None,
+                "Estimated Revenue ($)": round(revenue, 2) if revenue else None,
+                "ROI (%)": round(roi, 2) if roi is not None else None,
                 "Notes": warning_msg
             })
 
         result_df = pd.DataFrame(results)
 
-        st.markdown("### 📊 Forecasted Performance by Channel")
-
         def highlight_expensive(s):
             return ["background-color: #ffe6e6" if (s["Break-even CPR ($)"] is not None and s["Cost per Result ($)"] > s["Break-even CPR ($)"]) else "" for i in s.index]
 
+        st.markdown("### 📊 Forecasted Performance by Channel")
         styled_df = result_df.style.apply(highlight_expensive, axis=1)
         st.dataframe(styled_df)
 
