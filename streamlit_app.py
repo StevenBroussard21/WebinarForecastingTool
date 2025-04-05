@@ -216,14 +216,14 @@ with planner_tab:
         }
 
         st.markdown("### Customize Cost per Result")
+        enable_roi = st.checkbox("Estimate revenue and ROI?")
+        st.caption("(Optional) Turn on if you want to forecast revenue based on the value of each lead or sale.")
+
         results = []
         total_forecast = 0
         total_revenue = 0
         total_roi = 0
         roi_count = 0
-
-        enable_roi = st.checkbox("Estimate revenue and ROI?")
-        st.caption("(Optional) Turn on if you want to forecast revenue based on the value of each lead or sale.")
 
         for ch in channels:
             cost = st.number_input(
@@ -233,11 +233,9 @@ with planner_tab:
                 step=0.01,
                 key=f"cost_{ch}"
             )
+
             budget_ch = (allocations[ch] / 100) * total_budget
-            if kpi_goal == "Impressions":
-                forecast = (budget_ch / cost) * 1000
-            else:
-                forecast = budget_ch / cost
+            forecast = (budget_ch / cost) * 1000 if kpi_goal == "Impressions" else budget_ch / cost
             total_forecast += forecast
 
             est_revenue = 0
@@ -265,6 +263,7 @@ with planner_tab:
                     )
                     est_revenue = forecast * est_lead_value
                     break_even_cpr = est_lead_value
+
                 if est_revenue > 0:
                     roi = (est_revenue - budget_ch) / budget_ch * 100 if budget_ch > 0 else 0
                     total_revenue += est_revenue
@@ -289,6 +288,7 @@ with planner_tab:
         result_df = pd.DataFrame(results)
 
         st.markdown("### 📊 Forecasted Performance by Channel")
+
         def highlight_expensive(s):
             return ["background-color: #ffe6e6" if (s["Break-even CPR ($)"] is not None and s["Cost per Result ($)"] > s["Break-even CPR ($)"]) else "" for i in s.index]
 
