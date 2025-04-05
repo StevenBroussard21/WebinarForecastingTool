@@ -236,10 +236,20 @@ with planner_tab:
             # ROI estimation (only if goal is Leads or Sales)
             est_revenue = 0
             if kpi_goal == "Sales":
-                avg_order_value = st.number_input("Average Order Value ($)", value=250.0, step=10.0, key="aov")
+                avg_order_value = st.number_input(
+                    f"Average Order Value ($) - {ch}",
+                    value=250.0,
+                    step=10.0,
+                    key=f"aov_{ch}"
+                )
                 est_revenue = forecast * avg_order_value
             elif kpi_goal == "Leads":
-                est_lead_value = st.number_input("Estimated Value per Lead ($)", value=50.0, step=5.0, key="lead_val")
+                est_lead_value = st.number_input(
+                    f"Estimated Value per Lead ($) - {ch}",
+                    value=50.0,
+                    step=5.0,
+                    key=f"lead_val_{ch}"
+                )
                 est_revenue = forecast * est_lead_value
 
             roi = (est_revenue - budget_ch) / budget_ch * 100 if budget_ch > 0 else 0 if est_revenue > 0 else 0
@@ -261,9 +271,6 @@ with planner_tab:
 
         chart = px.bar(result_df, x="Channel", y=f"Forecasted {kpi_goal}", color="Channel", title=f"Forecasted {kpi_goal} by Channel")
         st.plotly_chart(chart, use_container_width=True)
-
-        csv_out = result_df.to_csv(index=False).encode("utf-8")
-        st.download_button("Download Channel KPI Forecast as CSV", data=csv_out, file_name="kpi_budget_forecast.csv", mime="text/csv")
 
         csv_out = result_df.to_csv(index=False).encode("utf-8")
         st.download_button("Download Channel KPI Forecast as CSV", data=csv_out, file_name="kpi_budget_forecast.csv", mime="text/csv")
