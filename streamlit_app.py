@@ -20,7 +20,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown("# 🎯 Webinar Performance Forecaster")
+st.markdown("# Campaign Planning Suite")
 st.markdown("Use this tool to forecast webinar campaign outcomes and profitability based on ad spend, conversion rates, and product details.")
 
 # Tabs
