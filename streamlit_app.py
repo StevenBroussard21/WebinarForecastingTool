@@ -218,6 +218,10 @@ with planner_tab:
         st.markdown("### Customize Cost per Result")
         results = []
         total_forecast = 0
+
+        enable_roi = st.checkbox("Estimate revenue and ROI?")
+        st.caption("(Optional) Turn on if you want to forecast revenue based on the value of each lead or sale.")
+
         for ch in channels:
             cost = st.number_input(
                 f"{ch} - Cost per {kpi_goal}",
@@ -233,34 +237,38 @@ with planner_tab:
                 forecast = budget_ch / cost
             total_forecast += forecast
 
-            # ROI estimation (only if goal is Leads or Sales)
             est_revenue = 0
-            if kpi_goal == "Sales":
-                avg_order_value = st.number_input(
-                    f"Average Order Value ($) - {ch}",
-                    value=250.0,
-                    step=10.0,
-                    key=f"aov_{ch}"
-                )
-                est_revenue = forecast * avg_order_value
-            elif kpi_goal == "Leads":
-                est_lead_value = st.number_input(
-                    f"Estimated Value per Lead ($) - {ch}",
-                    value=50.0,
-                    step=5.0,
-                    key=f"lead_val_{ch}"
-                )
-                est_revenue = forecast * est_lead_value
+            roi = None
 
-            roi = (est_revenue - budget_ch) / budget_ch * 100 if budget_ch > 0 else 0 if est_revenue > 0 else 0
+            if enable_roi:
+                if kpi_goal == "Sales":
+                    avg_order_value = st.number_input(
+                        f"Average Order Value ($) - {ch}",
+                        value=250.0,
+                        step=10.0,
+                        key=f"aov_{ch}"
+                    )
+                    est_revenue = forecast * avg_order_value
+                elif kpi_goal == "Leads":
+                    est_lead_value = st.number_input(
+                        f"Estimated Value per Lead ($) - {ch}",
+                        value=50.0,
+                        step=5.0,
+                        key=f"lead_val_{ch}"
+,
+                        help="Average revenue you earn per lead. For example, if your product is $500 and you convert 10% of leads, enter $50."
+                    )
+                    est_revenue = forecast * est_lead_value
+                if est_revenue > 0:
+                    roi = (est_revenue - budget_ch) / budget_ch * 100 if budget_ch > 0 else 0
 
             results.append({
                 "Channel": ch,
                 "Allocated Budget ($)": round(budget_ch, 2),
                 f"Cost per {kpi_goal}": round(cost, 2),
                 f"Forecasted {kpi_goal}": int(forecast),
-                "Estimated Revenue ($)": round(est_revenue, 2) if est_revenue > 0 else None,
-                "ROI (%)": round(roi, 2) if est_revenue > 0 else None
+                "Estimated Revenue ($)": round(est_revenue, 2) if enable_roi else None,
+                "ROI (%)": round(roi, 2) if enable_roi and roi is not None else None
             })
 
         result_df = pd.DataFrame(results)
