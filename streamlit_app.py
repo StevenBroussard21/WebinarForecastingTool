@@ -200,4 +200,71 @@ if mode == "Manual Input":
         file_name="webinar_forecast.csv",
         mime="text/csv"
     )
+# --------------------------
+# TAB 2: Multi-Channel Budget Planner
+# --------------------------
+with planner_tab:
+    st.markdown("## 💰 Multi-Channel Budget Planner")
+    st.markdown("Distribute your ad budget across multiple platforms and forecast performance based on campaign goals.")
+
+    total_budget = st.number_input("Total Campaign Budget ($)", min_value=0.0, value=5000.0)
+
+    kpi_goal = st.selectbox("What's your primary campaign objective?", ["Clicks", "Leads", "Sales", "Impressions"])
+
+    channels = ["Meta", "Google", "LinkedIn", "YouTube", "TikTok"]
+    allocations = {}
+    st.markdown("### Channel Budget Allocation (%)")
+    col1, col2 = st.columns(2)
+    for i, channel in enumerate(channels):
+        with (col1 if i % 2 == 0 else col2):
+            allocations[channel] = st.slider(f"{channel} Allocation", 0, 100, 20)
+
+    total_pct = sum(allocations.values())
+    if total_pct != 100:
+        st.warning(f"⚠️ Allocation total is {total_pct}%. Please adjust to 100%.")
+    else:
+        st.success("✅ Allocation is valid.")
+
+        default_kpis = {
+            "Clicks": {"Meta": 2.5, "Google": 3.0, "LinkedIn": 4.0, "YouTube": 2.8, "TikTok": 2.0},
+            "Leads": {"Meta": 30, "Google": 40, "LinkedIn": 80, "YouTube": 35, "TikTok": 25},
+            "Sales": {"Meta": 100, "Google": 120, "LinkedIn": 200, "YouTube": 110, "TikTok": 90},
+            "Impressions": {"Meta": 6, "Google": 7, "LinkedIn": 9, "YouTube": 5, "TikTok": 4}  # CPM
+        }
+
+        st.markdown("### Estimated Cost per Result")
+        kpi_data = []
+        for channel in channels:
+            cost = st.number_input(
+                f"{channel} - Cost per {kpi_goal[:-1] if kpi_goal.endswith('s') else kpi_goal} ($)",
+                min_value=0.01,
+                value=default_kpis[kpi_goal][channel],
+                key=f"kpi_{channel}"
+            )
+            budget_alloc = (allocations[channel] / 100) * total_budget
+            if kpi_goal == "Impressions":
+                result = (budget_alloc / cost) * 1000  # CPM logic
+            else:
+                result = budget_alloc / cost
+            kpi_data.append({
+                "Channel": channel,
+                "Allocated Budget ($)": round(budget_alloc, 2),
+                f"Cost per {kpi_goal}": round(cost, 2),
+                f"Forecasted {kpi_goal}": int(result)
+            })
+
+        result_df = pd.DataFrame(kpi_data)
+        st.markdown("### 📊 Forecast Results")
+        st.dataframe(result_df)
+
+        chart = px.bar(result_df, x="Channel", y=f"Forecasted {kpi_goal}", color="Channel", title=f"Forecasted {kpi_goal} by Channel")
+        st.plotly_chart(chart, use_container_width=True)
+
+        csv = result_df.to_csv(index=False).encode("utf-8")
+        st.download_button(
+            label="Download Forecast as CSV",
+            data=csv,
+            file_name="multi_channel_forecast.csv",
+            mime="text/csv"
+        )
 
