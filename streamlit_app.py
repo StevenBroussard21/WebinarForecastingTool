@@ -418,10 +418,10 @@ with pacing_tab:
 # TAB 4: Retargeting RIO Estimator
 # =============================
 with retargeting_tab:
-    st.markdown("## 🧠 Retargeting ROI Estimator (Advanced)")
+    st.markdown("## Retargeting ROI Estimator")
 
     # === Section 1: Actual Campaign Recap ===
-    st.markdown("### 📌 Actual Campaign Recap")
+    st.markdown("### Actual Campaign Recap")
 
     campaign_type = st.selectbox("Select Campaign Type", ["Product Launch", "Seasonal Sale", "Abandoned Cart", "Awareness Campaign", "Lead Gen Funnel"])
     platform = st.multiselect("Where did you run this campaign?", ["Meta (Facebook/Instagram)", "Google Display", "LinkedIn", "TikTok", "YouTube", "Email", "SMS"])
@@ -447,7 +447,7 @@ with retargeting_tab:
         roas = revenue / spend if spend > 0 else 0
         st.metric("ROAS", f"{roas:.2f}x")
 
-    st.markdown("### 📊 Funnel Visualization")
+    st.markdown("### Funnel Visualization")
     funnel_data = pd.DataFrame({
         "Stage": ["Impressions", "Clicks", "Conversions"],
         "Users": [impressions, clicks, conversions]
@@ -457,7 +457,7 @@ with retargeting_tab:
     st.divider()
 
     # === Section 2: Retargeting Strategy Builder ===
-    st.markdown("### 🧱 Retargeting Strategy Builder")
+    st.markdown("### Retargeting Strategy Builder")
 
     st.subheader("Strategy 1: Smart Suggestion")
     strategy_name = st.text_input("Strategy Name (Optional)", value="Meta Urgency Push")
@@ -491,23 +491,23 @@ with retargeting_tab:
         "Budget %": budget_pct
     }
 
-    st.markdown("#### 📋 Strategy Summary")
+    st.markdown("#### Strategy Summary")
     st.dataframe(pd.DataFrame([strategy_summary]))
 
     st.divider()
 
     # === Section 3: Performance Scenarios (Placeholder for now) ===
-    st.markdown("### 📊 Retargeting Performance Scenarios")
+    st.markdown("### Retargeting Performance Scenarios")
     st.info("Simulate recovered conversions, CPA improvements, and ROAS lift.")
 
     st.divider()
 
     # === Section 4: Organic Retargeting (Placeholder for now) ===
-    st.markdown("### 📬 Organic Retargeting")
+    st.markdown("### Organic Retargeting")
     st.info("Estimate impact from email and SMS campaigns.")
 
     st.divider()
 
     # === Section 5: Insight Recommendations (Placeholder for now) ===
-    st.markdown("### 💡 Insight Recommendations")
+    st.markdown("### Insight Recommendations")
     st.info("Insights and budget recommendations based on performance and benchmarks.")
