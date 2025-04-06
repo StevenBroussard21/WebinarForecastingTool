@@ -459,40 +459,40 @@ with retargeting_tab:
     # === Section 2: Retargeting Strategy Builder ===
     st.markdown("### 🧱 Retargeting Strategy Builder")
 
-    st.markdown("#### Strategy Inputs")
-    num_strategies = st.slider("Number of strategies to compare", 1, 3, 2)
-    strategy_data = []
+    st.subheader("Strategy 1: Smart Suggestion")
+    strategy_name = st.text_input("Strategy Name (Optional)", value="Meta Urgency Push")
 
-    for i in range(num_strategies):
-        st.subheader(f"Strategy {i+1}")
-        c1, c2, c3 = st.columns(3)
-        with c1:
-            audience = st.selectbox(f"Audience Segment (Strategy {i+1})", ["Cart Abandoners", "Page Viewers", "Previous Purchasers"], key=f"aud_{i}")
-            channel = st.selectbox(f"Channel (Strategy {i+1})", ["Display", "Social", "Email", "SMS"], key=f"chan_{i}")
-        with c2:
-            frequency = st.slider(f"Ad Frequency/Week (Strategy {i+1})", 1, 14, 3, key=f"freq_{i}")
-            duration = st.slider(f"Duration (Days) (Strategy {i+1})", 1, 30, 7, key=f"dur_{i}")
-        with c3:
-            budget_pct = st.slider(f"Budget Allocation % (Strategy {i+1})", 0, 100, 25, key=f"bud_{i}")
-            message_style = st.selectbox(f"CTA Style (Strategy {i+1})", ["Urgency", "Educational", "Offer-Based"], key=f"cta_{i}")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        audience_segment = st.selectbox("Audience Segment", ["Cart Abandoners", "Page Viewers", "Previous Purchasers"])
+        channel = st.selectbox("Retargeting Channel", ["Meta", "Google", "Email", "SMS", "LinkedIn", "TikTok"])
+        funnel_stage = st.selectbox("Funnel Stage Targeted", ["TOFU", "MOFU", "BOFU"])
+    with col2:
+        retargeting_goal = st.selectbox("Retargeting Goal", ["Conversion", "Re-engagement", "Awareness"])
+        cta_style = st.selectbox("CTA Style", ["Urgency", "Offer", "Educational"])
+        offer_type_strategy = st.selectbox("Offer Type", ["None", "% Off", "Free Shipping", "Free Trial"])
+    with col3:
+        creative_format = st.multiselect("Creative Formats", ["Video", "Static", "Carousel", "UGC"])
+        frequency = st.slider("Frequency (per week)", 1, 14, 3)
+        duration = st.slider("Duration (days)", 3, 30, 7)
+        budget_pct = st.slider("Budget Allocation %", 0, 100, 50)
 
-        strategy_data.append({
-            "Strategy": f"Strategy {i+1}",
-            "Audience": audience,
-            "Channel": channel,
-            "Frequency": frequency,
-            "Duration": duration,
-            "Budget %": budget_pct,
-            "CTA Style": message_style
-        })
+    strategy_summary = {
+        "Strategy Name": strategy_name,
+        "Audience Segment": audience_segment,
+        "Channel": channel,
+        "Funnel Stage": funnel_stage,
+        "Goal": retargeting_goal,
+        "CTA Style": cta_style,
+        "Offer": offer_type_strategy,
+        "Creative": ", ".join(creative_format),
+        "Frequency": frequency,
+        "Duration": duration,
+        "Budget %": budget_pct
+    }
 
-    st.markdown("#### 📋 Strategy Comparison Table")
-    st.dataframe(pd.DataFrame(strategy_data))
-
-    st.markdown("#### 📈 Strategy Allocation Chart")
-    chart_df = pd.DataFrame(strategy_data)
-    pie_chart = px.pie(chart_df, names="Strategy", values="Budget %", title="Budget Allocation Across Strategies")
-    st.plotly_chart(pie_chart, use_container_width=True)
+    st.markdown("#### 📋 Strategy Summary")
+    st.dataframe(pd.DataFrame([strategy_summary]))
 
     st.divider()
 
@@ -511,5 +511,3 @@ with retargeting_tab:
     # === Section 5: Insight Recommendations (Placeholder for now) ===
     st.markdown("### 💡 Insight Recommendations")
     st.info("Insights and budget recommendations based on performance and benchmarks.")
-
-
