@@ -10,7 +10,7 @@ st.set_page_config(page_title="Campaign Planning Suite", layout="wide")
 from PIL import Image
 import os
 
-logo_path = "evenshore_agency_logo.png"
+logo_path = "evenshore_agency_logo (2).png"
 if os.path.exists(logo_path):
     logo = Image.open(logo_path)
     st.image(logo, width=200)
