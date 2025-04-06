@@ -4,7 +4,30 @@ import plotly.graph_objects as go
 import plotly.express as px
 import io
 
+st.set_page_config(page_title="Campaign Planning Suite", layout="wide")
 
+# Inject layout styling for full-width and padding
+st.markdown("""
+    <style>
+        .block-container {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+            padding-left: 2rem;
+            padding-right: 2rem;
+            max-width: 1500px;
+            margin: auto;
+        }
+        .element-container:has(.stRadio) {
+            margin-bottom: 0.5rem !important;
+        }
+        .stRadio > div {
+            flex-direction: row;
+        }
+        .stMetric {
+            margin-bottom: 1rem !important;
+        }
+    </style>
+""", unsafe_allow_html=True)
 st.markdown("# Campaign Planning Suite")
 st.markdown("Use this tool to forecast webinar campaign outcomes and profitability based on ad spend, conversion rates, and product details.")
 
