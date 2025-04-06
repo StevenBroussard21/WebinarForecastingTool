@@ -4,21 +4,6 @@ import plotly.graph_objects as go
 import plotly.express as px
 import io
 
-# Title and Layout
-st.set_page_config(page_title="Webinar Performance Forecaster", layout="wide")
-st.markdown("""
-<style>
-    .block-container {
-        padding-top: 2rem;
-    }
-    .metric-container {
-        background-color: #f9f9f9;
-        border-radius: 10px;
-        padding: 1rem;
-        margin-bottom: 1rem;
-    }
-</style>
-""", unsafe_allow_html=True)
 
 st.markdown("# Campaign Planning Suite")
 st.markdown("Use this tool to forecast webinar campaign outcomes and profitability based on ad spend, conversion rates, and product details.")
@@ -31,7 +16,7 @@ forecast_tab, planner_tab, pacing_tab  = st.tabs(["Webinar Forecast", "Multi-Cha
 # --------------------------
 with forecast_tab:
     # Sidebar Input Section
-    st.sidebar.title("[Webinar Sidebar: Configure Your Campaign")
+    st.sidebar.title("[Webinar Sidebar]: Configure Your Campaign")
     mode = st.sidebar.radio("Input Method", ["Manual Input", "Upload CSV Data"])
 
     # Initialize variables
@@ -313,7 +298,7 @@ with planner_tab:
 # TAB 3: Campaign Timeline + Spend Tracker
 # =============================
 with pacing_tab:
-    st.sidebar.title("[Timeline Sidebar: Timeline Settings")
+    st.sidebar.title("[Timeline Sidebar]: Timeline Settings")
     duration_weeks = st.sidebar.slider("Campaign Duration (Weeks)", min_value=1, max_value=12, value=4)
     total_budget = st.sidebar.number_input("Total Campaign Budget ($)", min_value=0.0, value=10000.0)
     pacing_strategy = st.sidebar.selectbox("Pacing Strategy", ["Flat", "Front-loaded", "Back-loaded"])
