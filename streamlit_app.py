@@ -281,43 +281,46 @@ with planner_tab:
 # TAB 3: Campaign Timeline + Spend Tracker
 # =============================
 with pacing_tab:
-    st.sidebar.title("[Timeline Sidebar]: Timeline Settings")
-    duration_weeks = st.sidebar.slider("Campaign Duration (Weeks)", min_value=1, max_value=12, value=4)
-    total_budget = st.sidebar.number_input("Total Campaign Budget ($)", min_value=0.0, value=10000.0)
-    pacing_strategy = st.sidebar.selectbox("Pacing Strategy", ["Flat", "Front-loaded", "Back-loaded"])
-    cost_per_result = st.sidebar.number_input("Estimated Cost per Result ($)", min_value=0.01, value=25.0)
-    kpi_goal = st.sidebar.selectbox("Conversion Type", ["Clicks", "Leads", "Sales"])
+    sidebar, main = st.columns([1, 3])
 
-    # Calculate pacing weights
-    if pacing_strategy == "Flat":
-        pacing_weights = [1] * duration_weeks
-    elif pacing_strategy == "Front-loaded":
-        pacing_weights = list(reversed(range(1, duration_weeks + 1)))
-    elif pacing_strategy == "Back-loaded":
-        pacing_weights = list(range(1, duration_weeks + 1))
+    with sidebar:
+        st.markdown("### Timeline Settings")
+        duration_weeks = st.slider("Campaign Duration (Weeks)", min_value=1, max_value=12, value=4)
+        total_budget = st.number_input("Total Campaign Budget ($)", min_value=0.0, value=10000.0)
+        pacing_strategy = st.selectbox("Pacing Strategy", ["Flat", "Front-loaded", "Back-loaded"])
+        cost_per_result = st.number_input("Estimated Cost per Result ($)", min_value=0.01, value=25.0)
+        kpi_goal = st.selectbox("Conversion Type", ["Clicks", "Leads", "Sales"])
 
-    total_weight = sum(pacing_weights)
-    weekly_spend = [(w / total_weight) * total_budget for w in pacing_weights]
-    weekly_results = [s / cost_per_result for s in weekly_spend]
+    with main:
+        if pacing_strategy == "Flat":
+            pacing_weights = [1] * duration_weeks
+        elif pacing_strategy == "Front-loaded":
+            pacing_weights = list(reversed(range(1, duration_weeks + 1)))
+        elif pacing_strategy == "Back-loaded":
+            pacing_weights = list(range(1, duration_weeks + 1))
 
-    df = pd.DataFrame({
-        "Week": [f"Week {i+1}" for i in range(duration_weeks)],
-        "Planned Spend ($)": weekly_spend,
-        f"Forecasted {kpi_goal}": weekly_results
-    })
-    df["Cumulative Spend"] = df["Planned Spend ($)"].cumsum()
-    df["Cumulative Results"] = df[f"Forecasted {kpi_goal}"].cumsum()
+        total_weight = sum(pacing_weights)
+        weekly_spend = [(w / total_weight) * total_budget for w in pacing_weights]
+        weekly_results = [s / cost_per_result for s in weekly_spend]
 
-    st.subheader("📅 Weekly Spend & Results Forecast")
-    st.dataframe(df.style.format({
-        "Planned Spend ($)": "${:,.2f}",
-        f"Forecasted {kpi_goal}": "{:.0f}",
-        "Cumulative Spend": "${:,.2f}",
-        "Cumulative Results": "{:.0f}"
-    }), use_container_width=True)
+        df = pd.DataFrame({
+            "Week": [f"Week {i+1}" for i in range(duration_weeks)],
+            "Planned Spend ($)": weekly_spend,
+            f"Forecasted {kpi_goal}": weekly_results
+        })
+        df["Cumulative Spend"] = df["Planned Spend ($)"].cumsum()
+        df["Cumulative Results"] = df[f"Forecasted {kpi_goal}"].cumsum()
 
-    chart = px.line(df, x="Week", y=["Planned Spend ($)", f"Forecasted {kpi_goal}"], markers=True, title="Spend and Forecasted Results Over Time")
-    st.plotly_chart(chart, use_container_width=True)
+        st.subheader("📅 Weekly Spend & Results Forecast")
+        st.dataframe(df.style.format({
+            "Planned Spend ($)": "${:,.2f}",
+            f"Forecasted {kpi_goal}": "{:.0f}",
+            "Cumulative Spend": "${:,.2f}",
+            "Cumulative Results": "{:.0f}"
+        }), use_container_width=True)
 
-    st.download_button("Download Timeline Forecast as CSV", df.to_csv(index=False).encode("utf-8"), file_name="timeline_forecast.csv")
+        chart = px.line(df, x="Week", y=["Planned Spend ($)", f"Forecasted {kpi_goal}"], markers=True, title="Spend and Forecasted Results Over Time")
+        st.plotly_chart(chart, use_container_width=True)
+
+        st.download_button("Download Timeline Forecast as CSV", df.to_csv(index=False).encode("utf-8"), file_name="timeline_forecast.csv")
 
