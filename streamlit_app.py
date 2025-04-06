@@ -512,9 +512,9 @@ with retargeting_tab:
     # === Section 5: Insight Recommendations (Placeholder for now) ===
     st.markdown("### 💡 Insight Recommendations")
     st.info("Insights and budget recommendations based on performance and benchmarks.")
-            "Duration": duration,
-            "Budget %": budget_pct,
-            "CTA Style": message_style
+        "Duration": duration,
+        "Budget %": budget_pct,
+        "CTA Style": message_style
         })
 
     st.markdown("#### 📋 Strategy Comparison Table")
