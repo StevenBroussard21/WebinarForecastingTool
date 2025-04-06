@@ -95,7 +95,7 @@ st.markdown("# Campaign Planning Suite")
 st.markdown("Use this tool to forecast webinar campaign outcomes and profitability based on ad spend, conversion rates, and product details.")
 
 # Tabs
-forecast_tab, planner_tab, pacing_tab  = st.tabs(["Webinar Forecast", "Multi-Channel Budget Planner", "Timeline + Spend Tracker"])
+forecast_tab, planner_tab, pacing_tab, retargeting_tab  = st.tabs(["Webinar Forecast", "Multi-Channel Budget Planner", "Timeline + Spend Tracker", "Retargeting ROI Estimator"])
 
 # --------------------------
 # TAB 1: Webinar Forecast (Your Full Original Code)
@@ -414,5 +414,91 @@ with pacing_tab:
 
         st.download_button("Download Timeline Forecast as CSV", df.to_csv(index=False).encode("utf-8"),
                            file_name="timeline_forecast.csv")
+# =============================
+# TAB 4: Retargeting RIO Estimator
+# =============================
 
+with st.tab("Retargeting ROI Estimator"):
+    st.markdown("## 🧠 Retargeting ROI Estimator (Advanced)")
 
+    # === Section 1: Actual Campaign Recap ===
+    st.markdown("### 📌 Actual Campaign Recap")
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        impressions = st.number_input("Total Impressions", value=100000)
+        clicks = st.number_input("Total Clicks", value=5000)
+
+    with col2:
+        conversions = st.number_input("Total Conversions", value=700)
+        spend = st.number_input("Total Spend ($)", value=6000.0)
+
+    with col3:
+        revenue = st.number_input("Total Revenue ($)", value=18000.0)
+        roas = revenue / spend if spend > 0 else 0
+        st.metric("ROAS", f"{roas:.2f}x")
+
+    st.markdown("### 📊 Funnel Visualization")
+    funnel_data = pd.DataFrame({
+        "Stage": ["Impressions", "Clicks", "Conversions"],
+        "Users": [impressions, clicks, conversions]
+    })
+    st.bar_chart(funnel_data.set_index("Stage"))
+
+    st.divider()
+
+    # === Section 2: Retargeting Strategy Builder ===
+    st.markdown("### 🧱 Retargeting Strategy Builder")
+
+    st.markdown("#### Strategy Inputs")
+    num_strategies = st.slider("Number of strategies to compare", 1, 3, 2)
+    strategy_data = []
+
+    for i in range(num_strategies):
+        st.subheader(f"Strategy {i+1}")
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            audience = st.selectbox(f"Audience Segment (Strategy {i+1})", ["Cart Abandoners", "Page Viewers", "Previous Purchasers"], key=f"aud_{i}")
+            channel = st.selectbox(f"Channel (Strategy {i+1})", ["Display", "Social", "Email", "SMS"], key=f"chan_{i}")
+        with c2:
+            frequency = st.slider(f"Ad Frequency/Week (Strategy {i+1})", 1, 14, 3, key=f"freq_{i}")
+            duration = st.slider(f"Duration (Days) (Strategy {i+1})", 1, 30, 7, key=f"dur_{i}")
+        with c3:
+            budget_pct = st.slider(f"Budget Allocation % (Strategy {i+1})", 0, 100, 25, key=f"bud_{i}")
+            message_style = st.selectbox(f"CTA Style (Strategy {i+1})", ["Urgency", "Educational", "Offer-Based"], key=f"cta_{i}")
+
+        strategy_data.append({
+            "Strategy": f"Strategy {i+1}",
+            "Audience": audience,
+            "Channel": channel,
+            "Frequency": frequency,
+            "Duration": duration,
+            "Budget %": budget_pct,
+            "CTA Style": message_style
+        })
+
+    st.markdown("#### 📋 Strategy Comparison Table")
+    st.dataframe(pd.DataFrame(strategy_data))
+
+    st.markdown("#### 📈 Strategy Allocation Chart")
+    chart_df = pd.DataFrame(strategy_data)
+    pie_chart = px.pie(chart_df, names="Strategy", values="Budget %", title="Budget Allocation Across Strategies")
+    st.plotly_chart(pie_chart, use_container_width=True)
+
+    st.divider()
+
+    # === Section 3: Performance Scenarios (Placeholder for now) ===
+    st.markdown("### 📊 Retargeting Performance Scenarios")
+    st.info("Simulate recovered conversions, CPA improvements, and ROAS lift.")
+
+    st.divider()
+
+    # === Section 4: Organic Retargeting (Placeholder for now) ===
+    st.markdown("### 📬 Organic Retargeting")
+    st.info("Estimate impact from email and SMS campaigns.")
+
+    st.divider()
+
+    # === Section 5: Insight Recommendations (Placeholder for now) ===
+    st.markdown("### 💡 Insight Recommendations")
+    st.info("Insights and budget recommendations based on performance and benchmarks.")
