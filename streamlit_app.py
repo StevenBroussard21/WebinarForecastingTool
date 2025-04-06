@@ -418,7 +418,7 @@ with pacing_tab:
 # TAB 4: Retargeting RIO Estimator
 # =============================
 
-with st.tab("Retargeting ROI Estimator"):
+with retargeting_tab:
     st.markdown("## 🧠 Retargeting ROI Estimator (Advanced)")
 
     # === Section 1: Actual Campaign Recap ===
