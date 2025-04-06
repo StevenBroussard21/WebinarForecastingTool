@@ -78,6 +78,22 @@ with forecast_tab:
         net_profit = gross_profit - budget
         profit_margin = (net_profit / revenue * 100) if revenue > 0 else 0
 
+        data = {
+            "Clicks": clicks,
+            "Signups": signups,
+            "Attendees": attendees,
+            "Qualified Leads": leads,
+            "Sales": sales,
+            "Estimated Revenue": revenue,
+            "ROAS": roas,
+            "Cost Per Attendee": cost_per_attendee,
+            "Cost Per Lead": cost_per_lead,
+            "Total COGS": total_cogs,
+            "Gross Profit": gross_profit,
+            "Net Profit": net_profit,
+            "Profit Margin %": profit_margin
+        }
+
         st.subheader("📊 Forecast Summary")
         col1, col2, col3 = st.columns(3)
         col1.metric("Clicks", f"{clicks:.0f}")
@@ -108,29 +124,12 @@ with forecast_tab:
         })
         st.plotly_chart(px.bar(chart_df, x="Stage", y=["Your Rates (%)", "Benchmark (%)"], barmode="group"), use_container_width=True)
 
-        st.markdown("### 💰 ROAS Performance")
-        gauge = go.Figure(go.Indicator(
-            mode="gauge+number+delta",
-            value=roas,
-            delta={'reference': benchmarks['roas']},
-            gauge={
-                'axis': {'range': [0, max(roas * 1.5, 5)]},
-                'bar': {'color': "darkblue"},
-                'steps': [
-                    {'range': [0, benchmarks['roas']], 'color': "lightgray"},
-                    {'range': [benchmarks['roas'], roas], 'color': "lightgreen"}
-                ],
-                'threshold': {
-                    'line': {'color': "red", 'width': 4},
-                    'thickness': 0.75,
-                    'value': benchmarks['roas']
-                }
-            },
-            title={'text': "Return on Ad Spend (ROAS)"}
-        ))
-        st.plotly_chart(gauge, use_container_width=True)
+        st.download_button(
+            "Download Forecast as CSV",
+            pd.DataFrame([data]).to_csv(index=False).encode('utf-8'),
+            file_name="webinar_forecast.csv"
+        )
 
-        st.download_button("Download Forecast as CSV", pd.DataFrame([data]).to_csv(index=False).encode('utf-8'), file_name="webinar_forecast.csv")
 
 # --------------------------
 # TAB 2: Multi-Channel Budget Planner
