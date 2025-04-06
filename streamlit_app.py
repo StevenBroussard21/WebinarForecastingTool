@@ -124,6 +124,28 @@ with forecast_tab:
         })
         st.plotly_chart(px.bar(chart_df, x="Stage", y=["Your Rates (%)", "Benchmark (%)"], barmode="group"), use_container_width=True)
 
+        st.markdown("### 💰 ROAS Performance")
+        gauge = go.Figure(go.Indicator(
+            mode="gauge+number+delta",
+            value=roas,
+            delta={'reference': benchmarks['roas']},
+            gauge={
+                'axis': {'range': [0, max(roas * 1.5, 5)]},
+                'bar': {'color': "darkblue"},
+                'steps': [
+                    {'range': [0, benchmarks['roas']], 'color': "lightgray"},
+                    {'range': [benchmarks['roas'], roas], 'color': "lightgreen"}
+                ],
+                'threshold': {
+                    'line': {'color': "red", 'width': 4},
+                    'thickness': 0.75,
+                    'value': benchmarks['roas']
+                }
+            },
+            title={'text': "Return on Ad Spend (ROAS)"}
+        ))
+        st.plotly_chart(gauge, use_container_width=True)
+
         st.download_button(
             "Download Forecast as CSV",
             pd.DataFrame([data]).to_csv(index=False).encode('utf-8'),
