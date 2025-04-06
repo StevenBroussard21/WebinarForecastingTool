@@ -512,6 +512,38 @@ with retargeting_tab:
     # === Section 5: Insight Recommendations (Placeholder for now) ===
     st.markdown("### 💡 Insight Recommendations")
     st.info("Insights and budget recommendations based on performance and benchmarks.")
+
+            "Frequency": frequency,
+            "Duration": duration,
+            "Budget %": budget_pct,
+            "CTA Style": message_style
+        })
+
+    st.markdown("#### 📋 Strategy Comparison Table")
+    st.dataframe(pd.DataFrame(strategy_data))
+
+    st.markdown("#### 📈 Strategy Allocation Chart")
+    chart_df = pd.DataFrame(strategy_data)
+    pie_chart = px.pie(chart_df, names="Strategy", values="Budget %", title="Budget Allocation Across Strategies")
+    st.plotly_chart(pie_chart, use_container_width=True)
+
+    st.divider()
+
+    # === Section 3: Performance Scenarios (Placeholder for now) ===
+    st.markdown("### 📊 Retargeting Performance Scenarios")
+    st.info("Simulate recovered conversions, CPA improvements, and ROAS lift.")
+
+    st.divider()
+
+    # === Section 4: Organic Retargeting (Placeholder for now) ===
+    st.markdown("### 📬 Organic Retargeting")
+    st.info("Estimate impact from email and SMS campaigns.")
+
+    st.divider()
+
+    # === Section 5: Insight Recommendations (Placeholder for now) ===
+    st.markdown("### 💡 Insight Recommendations")
+    st.info("Insights and budget recommendations based on performance and benchmarks.")
         "Duration": duration,
         "Budget %": budget_pct,
         "CTA Style": message_style
