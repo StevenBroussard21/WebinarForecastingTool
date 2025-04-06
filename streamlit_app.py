@@ -6,6 +6,62 @@ import io
 
 st.set_page_config(page_title="Campaign Planning Suite", layout="wide")
 
+# ==== BRANDING: Logo + CSS Styling ====
+from PIL import Image
+logo = Image.open("evenshore agency logo (2).png")
+st.image(logo, width=200)
+
+st.markdown("""
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+        html, body, [class*="css"] {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .block-container {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+            padding-left: 2rem;
+            padding-right: 2rem;
+            max-width: 1500px;
+            margin: auto;
+        }
+
+        .stButton>button {
+            background: linear-gradient(90deg, #FDBB2D, #F25C26);
+            border: none;
+            color: white;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            font-weight: 600;
+        }
+
+        .stDownloadButton>button {
+            background: #F25C26;
+            border: none;
+            color: white;
+            border-radius: 6px;
+        }
+
+        .stMetric {
+            background: #fff3e6;
+            border-radius: 12px;
+            padding: 0.75rem;
+        }
+
+        h1, h2, h3 {
+            color: #F25C26;
+        }
+
+        .stTabs [role="tablist"] > div[aria-selected="true"] {
+            border-bottom: 3px solid #F25C26;
+            color: #F25C26;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+
 # Inject layout styling for full-width and padding
 st.markdown("""
     <style>
