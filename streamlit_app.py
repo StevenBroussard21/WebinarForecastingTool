@@ -180,7 +180,7 @@ with forecast_tab:
             "Profit Margin %": profit_margin
         }
 
-        st.subheader("📊 Forecast Summary")
+        st.subheader("Forecast Summary")
         col1, col2, col3 = st.columns(3)
         col1.metric("Clicks", f"{clicks:.0f}")
         col2.metric("Signups", f"{signups:.0f}")
@@ -196,13 +196,13 @@ with forecast_tab:
         col3.metric("Net Profit", f"${net_profit:.2f}")
         st.metric("Profit Margin", f"{profit_margin:.2f}%", delta=f"vs benchmark: {benchmarks['profit_margin']}%")
 
-        st.markdown("### 🔽 Funnel Visualization")
+        st.markdown("### Funnel Visualization")
         funnel_stages = ["Clicks", "Signups", "Attendees", "Qualified Leads", "Sales"]
         funnel_values = [clicks, signups, attendees, leads, sales]
         fig = go.Figure(go.Funnel(y=funnel_stages, x=funnel_values, textinfo="value+percent previous", marker={"color": "royalblue"}))
         st.plotly_chart(fig, use_container_width=True)
 
-        st.markdown("### 📊 Conversion Rates vs Benchmarks")
+        st.markdown("### Conversion Rates vs Benchmarks")
         chart_df = pd.DataFrame({
             "Stage": ["Landing Page CR", "Attendance Rate", "Lead Rate", "Sales Rate"],
             "Your Rates (%)": [landing_cr, attendance_rate, 100 if treat_all_as_leads else lead_rate, sales_rate],
@@ -210,7 +210,7 @@ with forecast_tab:
         })
         st.plotly_chart(px.bar(chart_df, x="Stage", y=["Your Rates (%)", "Benchmark (%)"], barmode="group"), use_container_width=True)
 
-        st.markdown("### 💰 ROAS Performance")
+        st.markdown("### ROAS Performance")
         gauge = go.Figure(go.Indicator(
             mode="gauge+number+delta",
             value=roas,
@@ -343,11 +343,11 @@ with planner_tab:
         def highlight_expensive(s):
             return ["background-color: #ffe6e6" if (s["Break-even CPR ($)"] is not None and s["Cost per Result ($)"] > s["Break-even CPR ($)"]) else "" for i in s.index]
 
-        st.markdown("### 📊 Forecasted Performance by Channel")
+        st.markdown("### Forecasted Performance by Channel")
         styled_df = result_df.style.apply(highlight_expensive, axis=1)
         st.dataframe(styled_df)
 
-        st.markdown(f"### 📈 Total Forecasted {kpi_goal}: **{int(total_forecast):,}**")
+        st.markdown(f"### Total Forecasted {kpi_goal}: **{int(total_forecast):,}**")
 
         if enable_roi:
             avg_roi = total_roi / roi_count if roi_count > 0 else 0
@@ -367,7 +367,7 @@ with planner_tab:
 # TAB 3: Campaign Timeline + Spend Tracker
 # =============================
 with pacing_tab:
-    st.markdown("## 🗓️ Campaign Timeline + Spend Tracker")
+    st.markdown("## 🗓Campaign Timeline + Spend Tracker")
 
     left_col, right_col = st.columns([1, 3])
 
@@ -400,7 +400,7 @@ with pacing_tab:
         df["Cumulative Spend"] = df["Planned Spend ($)"].cumsum()
         df["Cumulative Results"] = df[f"Forecasted {kpi_goal}"].cumsum()
 
-        st.subheader("📅 Weekly Spend & Results Forecast")
+        st.subheader("Weekly Spend & Results Forecast")
         st.dataframe(df.style.format({
             "Planned Spend ($)": "${:,.2f}",
             f"Forecasted {kpi_goal}": "{:.0f}",
