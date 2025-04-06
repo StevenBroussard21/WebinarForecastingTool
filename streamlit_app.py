@@ -423,8 +423,18 @@ with retargeting_tab:
 
     # === Section 1: Actual Campaign Recap ===
     st.markdown("### 📌 Actual Campaign Recap")
-    col1, col2, col3 = st.columns(3)
 
+    campaign_type = st.selectbox("Select Campaign Type", ["Product Launch", "Seasonal Sale", "Abandoned Cart", "Awareness Campaign", "Lead Gen Funnel"])
+    platform = st.multiselect("Where did you run this campaign?", ["Meta (Facebook/Instagram)", "Google Display", "LinkedIn", "TikTok", "YouTube", "Email", "SMS"])
+
+    target_audience = st.selectbox("Target Audience Persona", ["New Leads", "Past Customers", "Gen Z Shoppers", "Healthcare Professionals", "Small Business Owners"])
+    campaign_stage = st.selectbox("Campaign Stage", ["First-time Launch", "Recurring/Seasonal", "Mid-funnel Nurture", "Re-engagement", "Retention"])
+    cta = st.selectbox("Call-to-Action Used", ["Shop Now", "Book a Demo", "Download", "Sign Up", "Limited-Time Offer"])
+    offer_type = st.selectbox("Offer Type (if any)", ["None", "% Off", "BOGO", "Free Trial", "Free Shipping", "Educational Lead Magnet"])
+    creative_type = st.multiselect("Creative Formats Used", ["Video", "Static Image", "Carousel", "UGC (User-Generated Content)", "Story Ads", "Text-only (Email/SMS)"])
+    optimization_goal = st.selectbox("Optimization Goal (Ad Platform)", ["Reach", "Link Clicks", "Conversions", "Landing Page Views", "Lead Gen"])
+
+    col1, col2, col3 = st.columns(3)
     with col1:
         impressions = st.number_input("Total Impressions", value=100000)
         clicks = st.number_input("Total Clicks", value=5000)
@@ -472,6 +482,37 @@ with retargeting_tab:
             "Audience": audience,
             "Channel": channel,
             "Frequency": frequency,
+            "Duration": duration,
+            "Budget %": budget_pct,
+            "CTA Style": message_style
+        })
+
+    st.markdown("#### 📋 Strategy Comparison Table")
+    st.dataframe(pd.DataFrame(strategy_data))
+
+    st.markdown("#### 📈 Strategy Allocation Chart")
+    chart_df = pd.DataFrame(strategy_data)
+    pie_chart = px.pie(chart_df, names="Strategy", values="Budget %", title="Budget Allocation Across Strategies")
+    st.plotly_chart(pie_chart, use_container_width=True)
+
+    st.divider()
+
+    # === Section 3: Performance Scenarios (Placeholder for now) ===
+    st.markdown("### 📊 Retargeting Performance Scenarios")
+    st.info("Simulate recovered conversions, CPA improvements, and ROAS lift.")
+
+    st.divider()
+
+    # === Section 4: Organic Retargeting (Placeholder for now) ===
+    st.markdown("### 📬 Organic Retargeting")
+    st.info("Estimate impact from email and SMS campaigns.")
+
+    st.divider()
+
+    # === Section 5: Insight Recommendations (Placeholder for now) ===
+    st.markdown("### 💡 Insight Recommendations")
+    st.info("Insights and budget recommendations based on performance and benchmarks.")
+
             "Duration": duration,
             "Budget %": budget_pct,
             "CTA Style": message_style
