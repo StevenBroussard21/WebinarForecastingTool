@@ -281,17 +281,20 @@ with planner_tab:
 # TAB 3: Campaign Timeline + Spend Tracker
 # =============================
 with pacing_tab:
-    sidebar, main = st.columns([1, 3])
+    st.markdown("## 🗓️ Campaign Timeline + Spend Tracker")
 
-    with sidebar:
-        st.markdown("### Timeline Settings")
+    left_col, right_col = st.columns([1, 3])
+
+    with left_col:
+        st.markdown("### Configure Timeline")
         duration_weeks = st.slider("Campaign Duration (Weeks)", min_value=1, max_value=12, value=4)
         total_budget = st.number_input("Total Campaign Budget ($)", min_value=0.0, value=10000.0)
         pacing_strategy = st.selectbox("Pacing Strategy", ["Flat", "Front-loaded", "Back-loaded"])
         cost_per_result = st.number_input("Estimated Cost per Result ($)", min_value=0.01, value=25.0)
         kpi_goal = st.selectbox("Conversion Type", ["Clicks", "Leads", "Sales"])
 
-    with main:
+    with right_col:
+        # Generate pacing weights
         if pacing_strategy == "Flat":
             pacing_weights = [1] * duration_weeks
         elif pacing_strategy == "Front-loaded":
@@ -323,4 +326,5 @@ with pacing_tab:
         st.plotly_chart(chart, use_container_width=True)
 
         st.download_button("Download Timeline Forecast as CSV", df.to_csv(index=False).encode("utf-8"), file_name="timeline_forecast.csv")
+
 
