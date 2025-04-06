@@ -15,68 +15,55 @@ forecast_tab, planner_tab, pacing_tab  = st.tabs(["Webinar Forecast", "Multi-Cha
 # TAB 1: Webinar Forecast (Your Full Original Code)
 # --------------------------
 with forecast_tab:
-    # Sidebar Input Section
-    st.sidebar.title("[Webinar Sidebar]: Configure Your Campaign")
-    mode = st.sidebar.radio("Input Method", ["Manual Input", "Upload CSV Data"])
+    sidebar, main = st.columns([1, 3])
 
-    # Initialize variables
-    data = {}
+    with sidebar:
+        st.markdown("### Configure Your Campaign")
+        mode = st.radio("Input Method", ["Manual Input", "Upload CSV Data"])
 
-    # --- Benchmarks ---
-    benchmarks = {
-        "landing_cr": 25,
-        "attendance_rate": 40,
-        "lead_rate": 25,
-        "sales_rate": 15,
-        "roas": 3.0,
-        "cpl": 30,
-        "profit_margin": 25
-    }
+        benchmarks = {
+            "landing_cr": 25, "attendance_rate": 40, "lead_rate": 25,
+            "sales_rate": 15, "roas": 3.0, "cpl": 30, "profit_margin": 25
+        }
+        industry_benchmarks = {
+            "SaaS": {"landing_cr": 25, "attendance_rate": 50, "lead_rate": 30, "sales_rate": 15, "cpc": 3.5},
+            "Education": {"landing_cr": 20, "attendance_rate": 40, "lead_rate": 25, "sales_rate": 8, "cpc": 2.75},
+            "Healthcare": {"landing_cr": 15, "attendance_rate": 35, "lead_rate": 20, "sales_rate": 10, "cpc": 4.25},
+            "Consulting": {"landing_cr": 30, "attendance_rate": 60, "lead_rate": 35, "sales_rate": 25, "cpc": 3.0}
+        }
 
-    industry_benchmarks = {
-        "SaaS": {"landing_cr": 25, "attendance_rate": 50, "lead_rate": 30, "sales_rate": 15, "cpc": 3.5},
-        "Education": {"landing_cr": 20, "attendance_rate": 40, "lead_rate": 25, "sales_rate": 8, "cpc": 2.75},
-        "Healthcare": {"landing_cr": 15, "attendance_rate": 35, "lead_rate": 20, "sales_rate": 10, "cpc": 4.25},
-        "Consulting": {"landing_cr": 30, "attendance_rate": 60, "lead_rate": 35, "sales_rate": 25, "cpc": 3.0}
-    }
+        with st.expander("Look up Industry Benchmarks"):
+            selected_industry = st.selectbox("Select your industry:", list(industry_benchmarks.keys()))
+            if selected_industry:
+                bm = industry_benchmarks[selected_industry]
+                st.markdown(f"**Landing Page CR:** {bm['landing_cr']}%")
+                st.markdown(f"**Attendance Rate:** {bm['attendance_rate']}%")
+                st.markdown(f"**Lead Rate:** {bm['lead_rate']}%")
+                st.markdown(f"**Sales Rate:** {bm['sales_rate']}%")
+                st.markdown(f"**Avg CPC:** ${bm['cpc']}")
+                if st.button("Use these benchmarks"):
+                    st.session_state.use_benchmarks = True
+                    st.session_state.benchmark_values = bm
 
-    with st.expander("Look up Industry Benchmarks"):
-        selected_industry = st.selectbox("Select your industry:", list(industry_benchmarks.keys()))
-        if selected_industry:
-            bm = industry_benchmarks[selected_industry]
-            st.markdown(f"**Landing Page CR:** {bm['landing_cr']}%")
-            st.markdown(f"**Attendance Rate:** {bm['attendance_rate']}%")
-            st.markdown(f"**Lead Rate:** {bm['lead_rate']}%")
-            st.markdown(f"**Sales Rate:** {bm['sales_rate']}%")
-            st.markdown(f"**Avg CPC:** ${bm['cpc']}")
-            if st.button("Use these benchmarks"):
-                st.session_state.use_benchmarks = True
-                st.session_state.benchmark_values = bm
-
-    if mode == "Manual Input":
         use_benchmarks = st.session_state.get("use_benchmarks", False)
         bm_values = st.session_state.get("benchmark_values", benchmarks)
 
-        with st.sidebar.expander("Budget & Cost"):
+        with st.expander("Budget & Cost"):
             budget = st.number_input("Total Ad Budget ($)", min_value=0.0, value=1000.0)
             cpc = st.number_input("Estimated Cost Per Click ($)", min_value=0.01, value=bm_values.get("cpc", 1.5))
 
-        with st.sidebar.expander("Funnel Conversion Rates"):
+        with st.expander("Funnel Conversion Rates"):
             landing_cr = st.slider("Landing Page Conversion Rate (%)", 0, 100, bm_values.get("landing_cr", 25))
             attendance_rate = st.slider("Signup to Attendee Rate (%)", 0, 100, bm_values.get("attendance_rate", 50))
             lead_rate = st.slider("Attendee to Qualified Lead Rate (%)", 0, 100, bm_values.get("lead_rate", 30))
             sales_rate = st.slider("Lead to Sale Conversion Rate (%)", 0, 100, bm_values.get("sales_rate", 20))
-            treat_all_as_leads = st.checkbox(
-                "Treat all webinar attendees as qualified leads?",
-                value=False,
-                help="Use if every attendee is highly relevant or gets follow-up."
-            )
+            treat_all_as_leads = st.checkbox("Treat all webinar attendees as qualified leads?", value=False)
 
-        with st.sidebar.expander("Product Details"):
+        with st.expander("Product Details"):
             avg_deal_value = st.number_input("Average Deal Value ($)", min_value=0.0, value=500.0)
             cogs_per_sale = st.number_input("Cost of Goods per Sale ($)", min_value=0.0, value=100.0)
 
-        # --- Forecast Calculations ---
+    with main:
         clicks = budget / cpc
         signups = clicks * (landing_cr / 100)
         attendees = signups * (attendance_rate / 100)
@@ -91,84 +78,59 @@ with forecast_tab:
         net_profit = gross_profit - budget
         profit_margin = (net_profit / revenue * 100) if revenue > 0 else 0
 
-        data = {
-            "Clicks": clicks,
-            "Signups": signups,
-            "Attendees": attendees,
-            "Qualified Leads": leads,
-            "Sales": sales,
-            "Estimated Revenue": revenue,
-            "ROAS": roas,
-            "Cost Per Attendee": cost_per_attendee,
-            "Cost Per Lead": cost_per_lead,
-            "Total COGS": total_cogs,
-            "Gross Profit": gross_profit,
-            "Net Profit": net_profit,
-            "Profit Margin %": profit_margin,
-            "Conversion Rates": {
-                "Landing Page CR": landing_cr,
-                "Attendance Rate": attendance_rate,
-                "Lead Rate": 100 if treat_all_as_leads else lead_rate,
-                "Sales Rate": sales_rate
-            }
-        }
-
-        st.markdown("## 📊 Forecast Summary")
+        st.subheader("📊 Forecast Summary")
         col1, col2, col3 = st.columns(3)
-        col1.metric("Clicks", f"{data['Clicks']:.0f}")
-        col2.metric("Signups", f"{data['Signups']:.0f}")
-        col3.metric("Attendees", f"{data['Attendees']:.0f}")
-        col1.metric("Qualified Leads", f"{data['Qualified Leads']:.0f}")
-        col2.metric("Sales", f"{data['Sales']:.0f}")
-        col3.metric("Estimated Revenue", f"${data['Estimated Revenue']:.2f}")
-        col1.metric("Cost per Attendee", f"${data['Cost Per Attendee']:.2f}")
-        col2.metric("Cost per Lead", f"${data['Cost Per Lead']:.2f}", delta=f"vs benchmark: ${benchmarks['cpl']}")
-        col3.metric("ROAS", f"{data['ROAS']:.2f}x")
-        col1.metric("Total COGS", f"${data['Total COGS']:.2f}")
-        col2.metric("Gross Profit", f"${data['Gross Profit']:.2f}")
-        col3.metric("Net Profit", f"${data['Net Profit']:.2f}")
-        st.metric("Profit Margin", f"{data['Profit Margin %']:.2f}%", delta=f"vs benchmark: {benchmarks['profit_margin']}%")
+        col1.metric("Clicks", f"{clicks:.0f}")
+        col2.metric("Signups", f"{signups:.0f}")
+        col3.metric("Attendees", f"{attendees:.0f}")
+        col1.metric("Qualified Leads", f"{leads:.0f}")
+        col2.metric("Sales", f"{sales:.0f}")
+        col3.metric("Estimated Revenue", f"${revenue:,.2f}")
+        col1.metric("Cost per Attendee", f"${cost_per_attendee:.2f}")
+        col2.metric("Cost per Lead", f"${cost_per_lead:.2f}", delta=f"vs benchmark: ${benchmarks['cpl']}")
+        col3.metric("ROAS", f"{roas:.2f}x")
+        col1.metric("Total COGS", f"${total_cogs:.2f}")
+        col2.metric("Gross Profit", f"${gross_profit:.2f}")
+        col3.metric("Net Profit", f"${net_profit:.2f}")
+        st.metric("Profit Margin", f"{profit_margin:.2f}%", delta=f"vs benchmark: {benchmarks['profit_margin']}%")
 
-        st.markdown("---")
         st.markdown("### 🔽 Funnel Visualization")
         funnel_stages = ["Clicks", "Signups", "Attendees", "Qualified Leads", "Sales"]
-        funnel_values = [data[s] for s in funnel_stages]
+        funnel_values = [clicks, signups, attendees, leads, sales]
         fig = go.Figure(go.Funnel(y=funnel_stages, x=funnel_values, textinfo="value+percent previous", marker={"color": "royalblue"}))
         st.plotly_chart(fig, use_container_width=True)
 
         st.markdown("### 📊 Conversion Rates vs Benchmarks")
-        conversion_labels = list(data['Conversion Rates'].keys())
-        user_rates = list(data['Conversion Rates'].values())
-        benchmark_rates = [benchmarks['landing_cr'], benchmarks['attendance_rate'], benchmarks['lead_rate'], benchmarks['sales_rate']]
-        chart_df = pd.DataFrame({"Stage": conversion_labels, "Your Rates (%)": user_rates, "Benchmark (%)": benchmark_rates})
-        chart = px.bar(chart_df, x="Stage", y=["Your Rates (%)", "Benchmark (%)"], barmode="group", title="Your Conversion Rates vs Industry Benchmarks")
-        st.plotly_chart(chart, use_container_width=True)
+        chart_df = pd.DataFrame({
+            "Stage": ["Landing Page CR", "Attendance Rate", "Lead Rate", "Sales Rate"],
+            "Your Rates (%)": [landing_cr, attendance_rate, 100 if treat_all_as_leads else lead_rate, sales_rate],
+            "Benchmark (%)": [benchmarks['landing_cr'], benchmarks['attendance_rate'], benchmarks['lead_rate'], benchmarks['sales_rate']]
+        })
+        st.plotly_chart(px.bar(chart_df, x="Stage", y=["Your Rates (%)", "Benchmark (%)"], barmode="group"), use_container_width=True)
 
         st.markdown("### 💰 ROAS Performance")
         gauge = go.Figure(go.Indicator(
             mode="gauge+number+delta",
-            value=data['ROAS'],
+            value=roas,
             delta={'reference': benchmarks['roas']},
-            gauge={'axis': {'range': [0, max(data['ROAS'] * 1.5, 5)]},
-                   'bar': {'color': "darkblue"},
-                   'steps': [
-                       {'range': [0, benchmarks['roas']], 'color': "lightgray"},
-                       {'range': [benchmarks['roas'], data['ROAS']], 'color': "lightgreen"}
-                   ],
-                   'threshold': {
-                       'line': {'color': "red", 'width': 4},
-                       'thickness': 0.75,
-                       'value': benchmarks['roas']
-                   }},
+            gauge={
+                'axis': {'range': [0, max(roas * 1.5, 5)]},
+                'bar': {'color': "darkblue"},
+                'steps': [
+                    {'range': [0, benchmarks['roas']], 'color': "lightgray"},
+                    {'range': [benchmarks['roas'], roas], 'color': "lightgreen"}
+                ],
+                'threshold': {
+                    'line': {'color': "red", 'width': 4},
+                    'thickness': 0.75,
+                    'value': benchmarks['roas']
+                }
+            },
             title={'text': "Return on Ad Spend (ROAS)"}
         ))
         st.plotly_chart(gauge, use_container_width=True)
 
-        st.markdown("---")
-        st.markdown("### Download Your Forecast")
-        export_df = pd.DataFrame([data])
-        csv = export_df.to_csv(index=False).encode('utf-8')
-        st.download_button(label="Download Forecast as CSV", data=csv, file_name="webinar_forecast.csv", mime="text/csv")
+        st.download_button("Download Forecast as CSV", pd.DataFrame([data]).to_csv(index=False).encode('utf-8'), file_name="webinar_forecast.csv")
 
 # --------------------------
 # TAB 2: Multi-Channel Budget Planner
