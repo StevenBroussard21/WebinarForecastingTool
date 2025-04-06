@@ -322,9 +322,11 @@ with pacing_tab:
             "Cumulative Results": "{:.0f}"
         }), use_container_width=True)
 
-        chart = px.line(df, x="Week", y=["Planned Spend ($)", f"Forecasted {kpi_goal}"], markers=True, title="Spend and Forecasted Results Over Time")
+        chart = px.line(df, x="Week", y=["Planned Spend ($)", f"Forecasted {kpi_goal}"], markers=True,
+                        title="Spend and Forecasted Results Over Time")
         st.plotly_chart(chart, use_container_width=True)
 
-        st.download_button("Download Timeline Forecast as CSV", df.to_csv(index=False).encode("utf-8"), file_name="timeline_forecast.csv")
+        st.download_button("Download Timeline Forecast as CSV", df.to_csv(index=False).encode("utf-8"),
+                           file_name="timeline_forecast.csv")
 
 
