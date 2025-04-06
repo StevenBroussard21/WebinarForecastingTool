@@ -8,8 +8,14 @@ st.set_page_config(page_title="Campaign Planning Suite", layout="wide")
 
 # ==== BRANDING: Logo + CSS Styling ====
 from PIL import Image
-logo = Image.open("evenshore agency logo (2).png")
-st.image(logo, width=200)
+import os
+
+logo_path = "evenshore_agency_logo.png"
+if os.path.exists(logo_path):
+    logo = Image.open(logo_path)
+    st.image(logo, width=200)
+else:
+    st.warning("⚠️ Branding logo not found. Please upload 'evenshore_agency_logo.png' to the app directory.")
 
 st.markdown("""
     <style>
@@ -60,6 +66,7 @@ st.markdown("""
         }
     </style>
 """, unsafe_allow_html=True)
+
 
 
 # Inject layout styling for full-width and padding
