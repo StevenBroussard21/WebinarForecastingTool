@@ -24,7 +24,7 @@ st.markdown("# Campaign Planning Suite")
 st.markdown("Use this tool to forecast webinar campaign outcomes and profitability based on ad spend, conversion rates, and product details.")
 
 # Tabs
-forecast_tab, planner_tab = st.tabs(["📈 Webinar Forecast", "💰 Multi-Channel Budget Planner"])
+forecast_tab, planner_tab, pacing_tab  = st.tabs(["📈 Webinar Forecast", "💰 Multi-Channel Budget Planner", "Timeline + Spend Tracker"])
 
 # --------------------------
 # TAB 1: Webinar Forecast (Your Full Original Code)
@@ -312,7 +312,7 @@ with planner_tab:
 # =============================
 # TAB 3: Campaign Timeline + Spend Tracker
 # =============================
-with tab3:
+with pacing_tab:
     st.sidebar.title("📅 Timeline Settings")
     duration_weeks = st.sidebar.slider("Campaign Duration (Weeks)", min_value=1, max_value=12, value=4)
     total_budget = st.sidebar.number_input("Total Campaign Budget ($)", min_value=0.0, value=10000.0)
