@@ -240,7 +240,60 @@ with forecast_tab:
 
 
 # --------------------------
-# TAB 2: Multi-Channel Budget Planner
+# TAB 2: Webinar Forecast (Your Full Original Code)
+# --------------------------
+
+# --- Title ---
+st.title("Backend System ROI Forecaster")
+
+# --- Sidebar Inputs: Lead Funnel ---
+st.sidebar.header("Lead Funnel Inputs")
+reengaged_leads = st.sidebar.number_input("Re-engagement Lead Pool", value=2000, step=100)
+monthly_organic_leads = st.sidebar.number_input("Monthly Organic Leads", value=150, step=10)
+contact_rate = st.sidebar.slider("Contact Rate (%)", 0, 100, 80)
+booking_rate = st.sidebar.slider("Booking Rate (%)", 0, 100, 30)
+show_rate = st.sidebar.slider("Show Rate (%)", 0, 100, 75)
+close_rate = st.sidebar.slider("Close Rate (%)", 0, 100, 25)
+
+# --- Sidebar Inputs: Revenue ---
+st.sidebar.header("Revenue Assumptions")
+avg_client_value = st.sidebar.number_input("Average Client Value ($)", value=1500, step=100)
+
+# --- Sidebar Inputs: Costs ---
+st.sidebar.header("Cost Inputs")
+tech_stack_cost = st.sidebar.number_input("Annual Tech Stack Cost ($)", value=10500, step=500)
+team_salary_cost = st.sidebar.number_input("Annual Internal Team Cost ($)", value=75000, step=5000)
+
+# --- Calculations ---
+total_leads = reengaged_leads + (monthly_organic_leads * 12)
+contacted_leads = total_leads * (contact_rate / 100)
+booked_calls = contacted_leads * (booking_rate / 100)
+showed_calls = booked_calls * (show_rate / 100)
+closed_clients = showed_calls * (close_rate / 100)
+total_revenue = closed_clients * avg_client_value
+
+total_cost = tech_stack_cost + team_salary_cost
+roi = ((total_revenue - total_cost) / total_cost) * 100 if total_cost > 0 else 0
+
+# --- Display Results ---
+st.subheader("📊 Funnel Summary")
+st.markdown(f"- **Total Leads Touched:** {int(total_leads):,}")
+st.markdown(f"- **Leads Contacted:** {int(contacted_leads):,}")
+st.markdown(f"- **Calls Booked:** {int(booked_calls):,}")
+st.markdown(f"- **Calls Shown:** {int(showed_calls):,}")
+st.markdown(f"- **Clients Closed:** {int(closed_clients):,}")
+
+st.subheader("💰 Financial Projection")
+st.markdown(f"- **Projected Revenue:** ${total_revenue:,.2f}")
+st.markdown(f"- **Total Cost:** ${total_cost:,.2f}")
+st.markdown(f"- **Estimated ROI:** {roi:.2f}%")
+
+# --- Notes ---
+st.markdown("---")
+st.markdown("🔍 _This tool helps you project ROI based on re-engaging old leads and capturing organic traffic. Adjust assumptions in the sidebar to test different growth scenarios._")
+
+# --------------------------
+# TAB 3: Multi-Channel Budget Planner
 # --------------------------
 with planner_tab:
     st.markdown("## Multi-Channel Budget Planner")
@@ -364,7 +417,7 @@ with planner_tab:
         st.download_button("Download Channel KPI Forecast as CSV", data=csv_out, file_name="kpi_budget_forecast.csv", mime="text/csv")
 
 # =============================
-# TAB 3: Campaign Timeline + Spend Tracker
+# TAB 4: Campaign Timeline + Spend Tracker
 # =============================
 with pacing_tab:
     st.markdown("## 🗓Campaign Timeline + Spend Tracker")
@@ -414,99 +467,7 @@ with pacing_tab:
 
         st.download_button("Download Timeline Forecast as CSV", df.to_csv(index=False).encode("utf-8"),
                            file_name="timeline_forecast.csv")
-# =============================
-# TAB 4: Retargeting RIO Estimator
-# =============================
-with retargeting_tab:
-    st.markdown("## Retargeting ROI Estimator")
 
-    # === Section 1: Actual Campaign Recap ===
-    st.markdown("### Actual Campaign Recap")
-
-    campaign_type = st.selectbox("Select Campaign Type", ["Product Launch", "Seasonal Sale", "Abandoned Cart", "Awareness Campaign", "Lead Gen Funnel"])
-    platform = st.multiselect("Where did you run this campaign?", ["Meta (Facebook/Instagram)", "Google Display", "LinkedIn", "TikTok", "YouTube", "Email", "SMS"])
-
-    target_audience = st.selectbox("Target Audience Persona", ["New Leads", "Past Customers", "Gen Z Shoppers", "Healthcare Professionals", "Small Business Owners"])
-    campaign_stage = st.selectbox("Campaign Stage", ["First-time Launch", "Recurring/Seasonal", "Mid-funnel Nurture", "Re-engagement", "Retention"])
-    cta = st.selectbox("Call-to-Action Used", ["Shop Now", "Book a Demo", "Download", "Sign Up", "Limited-Time Offer"])
-    offer_type = st.selectbox("Offer Type (if any)", ["None", "% Off", "BOGO", "Free Trial", "Free Shipping", "Educational Lead Magnet"])
-    creative_type = st.multiselect("Creative Formats Used", ["Video", "Static Image", "Carousel", "UGC (User-Generated Content)", "Story Ads", "Text-only (Email/SMS)"])
-    optimization_goal = st.selectbox("Optimization Goal (Ad Platform)", ["Reach", "Link Clicks", "Conversions", "Landing Page Views", "Lead Gen"])
-
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        impressions = st.number_input("Total Impressions", value=100000)
-        clicks = st.number_input("Total Clicks", value=5000)
-
-    with col2:
-        conversions = st.number_input("Total Conversions", value=700)
-        spend = st.number_input("Total Spend ($)", value=6000.0)
-
-    with col3:
-        revenue = st.number_input("Total Revenue ($)", value=18000.0)
-        roas = revenue / spend if spend > 0 else 0
-        st.metric("ROAS", f"{roas:.2f}x")
-
-    st.markdown("### Funnel Visualization")
-    funnel_data = pd.DataFrame({
-        "Stage": ["Impressions", "Clicks", "Conversions"],
-        "Users": [impressions, clicks, conversions]
-    })
-    st.bar_chart(funnel_data.set_index("Stage"))
-
-    st.divider()
-
-    # === Section 2: Retargeting Strategy Builder ===
-    st.markdown("### Retargeting Strategy Builder")
-
-    st.subheader("Strategy 1: Smart Suggestion")
-    strategy_name = st.text_input("Strategy Name (Optional)", value="Meta Urgency Push")
-
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        audience_segment = st.selectbox("Audience Segment", ["Cart Abandoners", "Page Viewers", "Previous Purchasers"])
-        channel = st.selectbox("Retargeting Channel", ["Meta", "Google", "Email", "SMS", "LinkedIn", "TikTok"])
-        funnel_stage = st.selectbox("Funnel Stage Targeted", ["TOFU", "MOFU", "BOFU"])
-    with col2:
-        retargeting_goal = st.selectbox("Retargeting Goal", ["Conversion", "Re-engagement", "Awareness"])
-        cta_style = st.selectbox("CTA Style", ["Urgency", "Offer", "Educational"])
-        offer_type_strategy = st.selectbox("Offer Type", ["None", "% Off", "Free Shipping", "Free Trial"])
-    with col3:
-        creative_format = st.multiselect("Creative Formats", ["Video", "Static", "Carousel", "UGC"])
-        frequency = st.slider("Frequency (per week)", 1, 14, 3)
-        duration = st.slider("Duration (days)", 3, 30, 7)
-        budget_pct = st.slider("Budget Allocation %", 0, 100, 50)
-
-    strategy_summary = {
-        "Strategy Name": strategy_name,
-        "Audience Segment": audience_segment,
-        "Channel": channel,
-        "Funnel Stage": funnel_stage,
-        "Goal": retargeting_goal,
-        "CTA Style": cta_style,
-        "Offer": offer_type_strategy,
-        "Creative": ", ".join(creative_format),
-        "Frequency": frequency,
-        "Duration": duration,
-        "Budget %": budget_pct
-    }
-
-    st.markdown("#### Strategy Summary")
-    st.dataframe(pd.DataFrame([strategy_summary]))
-
-    st.divider()
-
-    # === Section 3: Performance Scenarios (Placeholder for now) ===
-    st.markdown("### Retargeting Performance Scenarios")
-    st.info("Simulate recovered conversions, CPA improvements, and ROAS lift.")
-
-    st.divider()
-
-    # === Section 4: Organic Retargeting (Placeholder for now) ===
-    st.markdown("### Organic Retargeting")
-    st.info("Estimate impact from email and SMS campaigns.")
-
-    st.divider()
 
     # === Section 5: Insight Recommendations (Placeholder for now) ===
     st.markdown("### Insight Recommendations")
