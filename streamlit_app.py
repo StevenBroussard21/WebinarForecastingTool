@@ -252,7 +252,7 @@ with backend_tab:
         active_leads = st.number_input("Currently Engaged or Booked Leads", value=500, step=1)
         leads_to_reengage = total_crm_leads - active_leads
 
-       st.markdown("### Funnel Conversion Rates")
+        st.markdown("### Funnel Conversion Rates")
         contact_rate = st.slider("Contact Rate (%)", 0, 100, 70)
         booking_rate = st.slider("Booking Rate (%)", 0, 100, 30)
         show_rate = st.slider("Show Rate (%)", 0, 100, 75)
