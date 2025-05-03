@@ -248,8 +248,8 @@ with backend_tab:
     with sidebar:
         st.markdown("### Backend Funnel Assumptions")
 
-        total_crm_leads = st.number_input("Total Leads in CRM", value=2000, step=100)
-        active_leads = st.number_input("Currently Engaged or Booked Leads", value=500, step=50)
+        total_crm_leads = st.number_input("Total Leads in CRM", value=2000, step=1)
+        active_leads = st.number_input("Currently Engaged or Booked Leads", value=500, step=1)
         leads_to_reengage = total_crm_leads - active_leads
 
         st.markdown("### Funnel Conversion Rates")
