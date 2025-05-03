@@ -383,6 +383,7 @@ with backend_tab:
                 - Estimated revenue is **${white_metrics['Revenue']:,.2f}** against **${white_metrics['Cost']:,.2f}** in backend costs.
                 - This yields a projected **ROI of {white_metrics['ROI']:.2f}%** and **ROAS of {white_metrics['ROAS']:.2f}x**.
             """)
+
 # --------------------------
 # TAB 3: Multi-Channel Budget Planner
 # --------------------------
