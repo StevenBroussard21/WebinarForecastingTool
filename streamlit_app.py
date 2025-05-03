@@ -95,7 +95,7 @@ st.markdown("# Campaign Planning Suite")
 st.markdown("Use this tool to forecast webinar campaign outcomes and profitability based on ad spend, conversion rates, and product details.")
 
 # Tabs
-forecast_tab, planner_tab, pacing_tab, retargeting_tab  = st.tabs(["Webinar Forecast", "Multi-Channel Budget Planner", "Timeline + Spend Tracker", "Retargeting ROI Estimator"])
+forecast_tab, backend_tab, planner_tab  = st.tabs(["Webinar Forecast", "Backend System ROI Forecast", "Multi-Channel Budget Planner"])
 
 # --------------------------
 # TAB 1: Webinar Forecast (Your Full Original Code)
@@ -240,57 +240,80 @@ with forecast_tab:
 
 
 # --------------------------
-# TAB 2: Webinar Forecast (Your Full Original Code)
+# TAB 2: Backend System ROI Forecast
 # --------------------------
 
-# --- Title ---
-st.title("Backend System ROI Forecaster")
+with backend_tab:
+    sidebar, main = st.columns([1, 3])
 
-# --- Sidebar Inputs: Lead Funnel ---
-st.sidebar.header("Lead Funnel Inputs")
-reengaged_leads = st.sidebar.number_input("Re-engagement Lead Pool", value=2000, step=100)
-monthly_organic_leads = st.sidebar.number_input("Monthly Organic Leads", value=150, step=10)
-contact_rate = st.sidebar.slider("Contact Rate (%)", 0, 100, 80)
-booking_rate = st.sidebar.slider("Booking Rate (%)", 0, 100, 30)
-show_rate = st.sidebar.slider("Show Rate (%)", 0, 100, 75)
-close_rate = st.sidebar.slider("Close Rate (%)", 0, 100, 25)
+    with sidebar:
+        st.markdown("### Backend Funnel Assumptions")
 
-# --- Sidebar Inputs: Revenue ---
-st.sidebar.header("Revenue Assumptions")
-avg_client_value = st.sidebar.number_input("Average Client Value ($)", value=1500, step=100)
+        reengaged_leads = st.number_input("Re-engagement Lead Pool", value=2000, step=100)
+        monthly_organic_leads = st.number_input("Monthly Organic Leads", value=150, step=10)
+        contact_rate = st.slider("Contact Rate (%)", 0, 100, 80)
+        booking_rate = st.slider("Booking Rate (%)", 0, 100, 30)
+        show_rate = st.slider("Show Rate (%)", 0, 100, 75)
+        close_rate = st.slider("Close Rate (%)", 0, 100, 25)
 
-# --- Sidebar Inputs: Costs ---
-st.sidebar.header("Cost Inputs")
-tech_stack_cost = st.sidebar.number_input("Annual Tech Stack Cost ($)", value=10500, step=500)
-team_salary_cost = st.sidebar.number_input("Annual Internal Team Cost ($)", value=75000, step=5000)
+        st.markdown("### Revenue & Cost Assumptions")
+        avg_client_value = st.number_input("Average Client Value ($)", value=1500, step=100)
+        tech_stack_cost = st.number_input("Annual Tech Stack Cost ($)", value=10500, step=500)
+        team_salary_cost = st.number_input("Internal Team Cost ($)", value=75000, step=5000)
 
-# --- Calculations ---
-total_leads = reengaged_leads + (monthly_organic_leads * 12)
-contacted_leads = total_leads * (contact_rate / 100)
-booked_calls = contacted_leads * (booking_rate / 100)
-showed_calls = booked_calls * (show_rate / 100)
-closed_clients = showed_calls * (close_rate / 100)
-total_revenue = closed_clients * avg_client_value
+    with main:
+        total_leads = reengaged_leads + (monthly_organic_leads * 12)
+        contacted = total_leads * (contact_rate / 100)
+        booked = contacted * (booking_rate / 100)
+        showed = booked * (show_rate / 100)
+        closed = showed * (close_rate / 100)
+        revenue = closed * avg_client_value
+        total_cost = tech_stack_cost + team_salary_cost
+        roi = ((revenue - total_cost) / total_cost) * 100 if total_cost else 0
 
-total_cost = tech_stack_cost + team_salary_cost
-roi = ((total_revenue - total_cost) / total_cost) * 100 if total_cost > 0 else 0
+        st.subheader("📊 Funnel Summary")
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Total Leads", f"{int(total_leads):,}")
+        c2.metric("Contacted", f"{int(contacted):,}")
+        c3.metric("Booked", f"{int(booked):,}")
+        c1.metric("Showed", f"{int(showed):,}")
+        c2.metric("Closed", f"{int(closed):,}")
 
-# --- Display Results ---
-st.subheader("📊 Funnel Summary")
-st.markdown(f"- **Total Leads Touched:** {int(total_leads):,}")
-st.markdown(f"- **Leads Contacted:** {int(contacted_leads):,}")
-st.markdown(f"- **Calls Booked:** {int(booked_calls):,}")
-st.markdown(f"- **Calls Shown:** {int(showed_calls):,}")
-st.markdown(f"- **Clients Closed:** {int(closed_clients):,}")
+        st.subheader("💰 Financial Projection")
+        c3.metric("Revenue", f"${revenue:,.2f}")
+        c1.metric("Total Cost", f"${total_cost:,.2f}")
+        c2.metric("ROI", f"{roi:.2f}%")
 
-st.subheader("💰 Financial Projection")
-st.markdown(f"- **Projected Revenue:** ${total_revenue:,.2f}")
-st.markdown(f"- **Total Cost:** ${total_cost:,.2f}")
-st.markdown(f"- **Estimated ROI:** {roi:.2f}%")
+        st.markdown("### Funnel Visualization")
+        funnel_stages = ["Total Leads", "Contacted", "Booked", "Showed", "Closed"]
+        funnel_values = [total_leads, contacted, booked, showed, closed]
+        fig = go.Figure(go.Funnel(
+            y=funnel_stages,
+            x=funnel_values,
+            textinfo="value+percent previous",
+            marker={"color": "#F25C26"}
+        ))
+        st.plotly_chart(fig, use_container_width=True)
 
-# --- Notes ---
-st.markdown("---")
-st.markdown("🔍 _This tool helps you project ROI based on re-engaging old leads and capturing organic traffic. Adjust assumptions in the sidebar to test different growth scenarios._")
+        st.markdown("### ROI Breakdown (Downloadable)")
+        result_data = {
+            "Total Leads": total_leads,
+            "Leads Contacted": contacted,
+            "Calls Booked": booked,
+            "Calls Shown": showed,
+            "Clients Closed": closed,
+            "Projected Revenue": revenue,
+            "Total Cost": total_cost,
+            "ROI (%)": roi
+        }
+        st.download_button(
+            "Download Backend ROI Forecast as CSV",
+            pd.DataFrame([result_data]).to_csv(index=False).encode("utf-8"),
+            file_name="backend_roi_forecast.csv"
+        )
+
+        st.markdown("### Strategic Note")
+        st.info("This ROI projection is based solely on organic growth and CRM-driven follow-up. Optimizing nurture sequences, scripting, and automation will lift ROI over time.")
 
 # --------------------------
 # TAB 3: Multi-Channel Budget Planner
@@ -416,60 +439,3 @@ with planner_tab:
         csv_out = result_df.to_csv(index=False).encode("utf-8")
         st.download_button("Download Channel KPI Forecast as CSV", data=csv_out, file_name="kpi_budget_forecast.csv", mime="text/csv")
 
-# =============================
-# TAB 4: Campaign Timeline + Spend Tracker
-# =============================
-with pacing_tab:
-    st.markdown("## 🗓Campaign Timeline + Spend Tracker")
-
-    left_col, right_col = st.columns([1, 3])
-
-    with left_col:
-        st.markdown("### Configure Timeline")
-        duration_weeks = st.slider("Campaign Duration (Weeks)", min_value=1, max_value=12, value=4)
-        total_budget = st.number_input("Total Campaign Budget ($)", min_value=0.0, value=10000.0)
-        pacing_strategy = st.selectbox("Pacing Strategy", ["Flat", "Front-loaded", "Back-loaded"])
-        cost_per_result = st.number_input("Estimated Cost per Result ($)", min_value=0.01, value=25.0)
-        kpi_goal = st.selectbox("Conversion Type", ["Clicks", "Leads", "Sales"])
-
-    with right_col:
-        # Generate pacing weights
-        if pacing_strategy == "Flat":
-            pacing_weights = [1] * duration_weeks
-        elif pacing_strategy == "Front-loaded":
-            pacing_weights = list(reversed(range(1, duration_weeks + 1)))
-        elif pacing_strategy == "Back-loaded":
-            pacing_weights = list(range(1, duration_weeks + 1))
-
-        total_weight = sum(pacing_weights)
-        weekly_spend = [(w / total_weight) * total_budget for w in pacing_weights]
-        weekly_results = [s / cost_per_result for s in weekly_spend]
-
-        df = pd.DataFrame({
-            "Week": [f"Week {i+1}" for i in range(duration_weeks)],
-            "Planned Spend ($)": weekly_spend,
-            f"Forecasted {kpi_goal}": weekly_results
-        })
-        df["Cumulative Spend"] = df["Planned Spend ($)"].cumsum()
-        df["Cumulative Results"] = df[f"Forecasted {kpi_goal}"].cumsum()
-
-        st.subheader("Weekly Spend & Results Forecast")
-        st.dataframe(df.style.format({
-            "Planned Spend ($)": "${:,.2f}",
-            f"Forecasted {kpi_goal}": "{:.0f}",
-            "Cumulative Spend": "${:,.2f}",
-            "Cumulative Results": "{:.0f}"
-        }), use_container_width=True)
-
-        chart = px.line(df, x="Week", y=["Planned Spend ($)", f"Forecasted {kpi_goal}"], markers=True,
-                        title="Spend and Forecasted Results Over Time")
-        st.plotly_chart(chart, use_container_width=True)
-
-        st.download_button("Download Timeline Forecast as CSV", df.to_csv(index=False).encode("utf-8"),
-                           file_name="timeline_forecast.csv")
-
-
-    # === Section 5: Insight Recommendations (Placeholder for now) ===
-    st.markdown("### Insight Recommendations")
-    st.info("Insights and budget recommendations based on performance and benchmarks.")
-#
