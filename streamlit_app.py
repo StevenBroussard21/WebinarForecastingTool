@@ -249,17 +249,40 @@ with backend_tab:
     with sidebar:
         st.markdown("### Backend Funnel Assumptions")
 
+        scenario = st.radio("Choose Scenario", ["Baseline", "White-Glove System"], horizontal=True)
+
+        if scenario == "Baseline":
+            contact_rate = st.slider("Contact Rate (%)", 0, 100, 70)
+            booking_rate = st.slider("Booking Rate (%)", 0, 100, 30)
+            show_rate = st.slider("Show Rate (%)", 0, 100, 75)
+            close_rate = st.slider("Close Rate (%)", 0, 100, 20)
+        else:
+            contact_rate = st.slider("Contact Rate (%)", 0, 100, 85)
+            booking_rate = st.slider("Booking Rate (%)", 0, 100, 45)
+            show_rate = st.slider("Show Rate (%)", 0, 100, 80)
+            close_rate = st.slider("Close Rate (%)", 0, 100, 35)
+
         reengaged_leads = st.number_input("Re-engagement Lead Pool", value=2000, step=100)
         monthly_organic_leads = st.number_input("Monthly Organic Leads", value=150, step=10)
-        contact_rate = st.slider("Contact Rate (%)", 0, 100, 80)
-        booking_rate = st.slider("Booking Rate (%)", 0, 100, 30)
-        show_rate = st.slider("Show Rate (%)", 0, 100, 75)
-        close_rate = st.slider("Close Rate (%)", 0, 100, 25)
 
         st.markdown("### Revenue & Cost Assumptions")
         avg_client_value = st.number_input("Average Client Value ($)", value=1500, step=100)
         tech_stack_cost = st.number_input("Annual Tech Stack Cost ($)", value=10500, step=500)
-        team_salary_cost = st.number_input("Internal Team Cost ($)", value=75000, step=5000)
+
+        st.markdown("#### Team Structure")
+        team_members = st.number_input("Team Members", 1, 10, value=2)
+        monthly_salary = st.number_input("Monthly Salary per Team Member ($)", value=5000, step=500)
+        team_salary_cost = team_members * monthly_salary * 12
+
+        st.markdown("#### Optional Add-ons")
+        use_sms = st.checkbox("Include SMS Automation ($300/mo)", value=True)
+        use_email = st.checkbox("Include Email Platform ($150/mo)", value=True)
+
+        addon_cost = 0
+        if use_sms:
+            addon_cost += 300 * 12
+        if use_email:
+            addon_cost += 150 * 12
 
     with main:
         total_leads = reengaged_leads + (monthly_organic_leads * 12)
@@ -268,8 +291,10 @@ with backend_tab:
         showed = booked * (show_rate / 100)
         closed = showed * (close_rate / 100)
         revenue = closed * avg_client_value
-        total_cost = tech_stack_cost + team_salary_cost
+
+        total_cost = tech_stack_cost + team_salary_cost + addon_cost
         roi = ((revenue - total_cost) / total_cost) * 100 if total_cost else 0
+        roas = revenue / total_cost if total_cost else 0
 
         st.subheader("📊 Funnel Summary")
         c1, c2, c3 = st.columns(3)
@@ -283,20 +308,40 @@ with backend_tab:
         c3.metric("Revenue", f"${revenue:,.2f}")
         c1.metric("Total Cost", f"${total_cost:,.2f}")
         c2.metric("ROI", f"{roi:.2f}%")
+        st.metric("Backend ROAS", f"{roas:.2f}x", delta="vs benchmark: 3.0x")
 
-        st.markdown("### Funnel Visualization")
-        funnel_stages = ["Total Leads", "Contacted", "Booked", "Showed", "Closed"]
-        funnel_values = [total_leads, contacted, booked, showed, closed]
-        fig = go.Figure(go.Funnel(
-            y=funnel_stages,
-            x=funnel_values,
-            textinfo="value+percent previous",
-            marker={"color": "#F25C26"}
+        st.markdown("### Funnel Drop-Off Chart")
+        funnel_df = pd.DataFrame({
+            "Stage": ["Total Leads", "Contacted", "Booked", "Showed", "Closed"],
+            "Volume": [total_leads, contacted, booked, showed, closed]
+        })
+        funnel_fig = px.bar(funnel_df, x="Stage", y="Volume", text_auto=True)
+        st.plotly_chart(funnel_fig, use_container_width=True)
+
+        st.markdown("### Backend ROAS Gauge")
+        gauge = go.Figure(go.Indicator(
+            mode="gauge+number+delta",
+            value=roas,
+            delta={'reference': 3.0},
+            gauge={
+                'axis': {'range': [0, max(roas * 1.5, 5)]},
+                'bar': {'color': "#F25C26"},
+                'steps': [
+                    {'range': [0, 3.0], 'color': "lightgray"},
+                    {'range': [3.0, roas], 'color': "lightgreen"}
+                ],
+                'threshold': {
+                    'line': {'color': "red", 'width': 4},
+                    'thickness': 0.75,
+                    'value': 3.0
+                }
+            },
+            title={'text': "Backend ROAS (Return on System Spend)"}
         ))
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(gauge, use_container_width=True)
 
-        st.markdown("### ROI Breakdown (Downloadable)")
         result_data = {
+            "Scenario": scenario,
             "Total Leads": total_leads,
             "Leads Contacted": contacted,
             "Calls Booked": booked,
@@ -304,16 +349,23 @@ with backend_tab:
             "Clients Closed": closed,
             "Projected Revenue": revenue,
             "Total Cost": total_cost,
-            "ROI (%)": roi
+            "ROI (%)": roi,
+            "Backend ROAS": roas
         }
+
         st.download_button(
             "Download Backend ROI Forecast as CSV",
             pd.DataFrame([result_data]).to_csv(index=False).encode("utf-8"),
-            file_name="backend_roi_forecast.csv"
+            file_name="enhanced_backend_roi_forecast.csv"
         )
 
-        st.markdown("### Strategic Note")
-        st.info("This ROI projection is based solely on organic growth and CRM-driven follow-up. Optimizing nurture sequences, scripting, and automation will lift ROI over time.")
+        if st.checkbox("Show Strategy Summary"):
+            st.markdown(f"""
+            ### Strategy Summary
+            Based on your **{scenario.lower()}** model, the backend system will handle **{int(total_leads):,} leads** annually.
+            With a close rate of **{close_rate}%**, this yields approximately **{int(closed):,} clients**, generating **${revenue:,.2f}** in revenue.
+            Your total backend cost is **${total_cost:,.2f}**, resulting in a projected **ROI of {roi:.2f}%** and **ROAS of {roas:.2f}x**.
+            """)
 
 # --------------------------
 # TAB 3: Multi-Channel Budget Planner
