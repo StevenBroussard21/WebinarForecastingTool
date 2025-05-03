@@ -252,7 +252,7 @@ with backend_tab:
         active_leads = st.number_input("Currently Engaged or Booked Leads", value=500, step=1)
         leads_to_reengage = total_crm_leads - active_leads
 
-        st.markdown("### Funnel Conversion Rates")
+       st.markdown("### Funnel Conversion Rates")
         contact_rate = st.slider("Contact Rate (%)", 0, 100, 70)
         booking_rate = st.slider("Booking Rate (%)", 0, 100, 30)
         show_rate = st.slider("Show Rate (%)", 0, 100, 75)
@@ -311,20 +311,22 @@ with backend_tab:
         funnel_fig = px.bar(funnel_df, x="Stage", y="Volume", text_auto=True)
         st.plotly_chart(funnel_fig, use_container_width=True)
 
-        # Waterfall Chart
-        st.markdown("### Revenue vs Cost Breakdown")
-        waterfall_fig = go.Figure(go.Waterfall(
-            name="20",
-            orientation="v",
-            measure=["absolute", "relative", "relative", "relative", "total"],
-            x=["Revenue", "- Tech Cost", "- Salaries", "- Add-ons", "Net Profit"],
-            textposition="outside",
-            text=[f"${revenue:,.0f}", f"-${tech_cost:,.0f}", f"-${salary_cost:,.0f}", f"-${addon_cost:,.0f}", f"${net_profit:,.0f}"],
-            y=[revenue, -tech_cost, -salary_cost, -addon_cost, net_profit],
-            connector={"line": {"color": "gray"}}
-        ))
-        waterfall_fig.update_layout(title="Revenue to Profit Breakdown", showlegend=False)
-        st.plotly_chart(waterfall_fig, use_container_width=True)
+        # Stacked Bar Chart for Cost Breakdown + Net Profit
+        st.markdown("### Revenue Breakdown: Cost vs Net Profit")
+        breakdown_df = pd.DataFrame({
+            "Component": ["Tech Stack", "Salaries", "Add-ons", "Net Profit"],
+            "Value": [tech_cost, salary_cost, addon_cost, net_profit]
+        })
+        stacked_fig = px.bar(
+            breakdown_df,
+            x=["Revenue"] * 4,
+            y="Value",
+            color="Component",
+            text="Value",
+            title="Revenue Allocation"
+        )
+        stacked_fig.update_layout(barmode="stack", xaxis_title=None, yaxis_title="$ Amount")
+        st.plotly_chart(stacked_fig, use_container_width=True)
 
         # Strategy Summary
         if st.checkbox("Show Strategy Summary"):
