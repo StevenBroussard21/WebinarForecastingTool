@@ -251,6 +251,10 @@ with backend_tab:
         time_view = st.radio("Show Forecast As:", ["Monthly", "Yearly"])
         multiplier = 12 if time_view == "Yearly" else 1
 
+        # Reinvestment Mode (now shown always, but affects compounding only if yearly)
+        st.markdown("### Reinvestment Style")
+        reinvest_mode = st.radio("Compounding Mode", ["Light", "Moderate", "Aggressive"])
+
         # CRM Lead Inputs
         st.markdown("### Backend Funnel Assumptions")
         total_crm_leads = st.number_input("Total Leads in CRM", value=2000, step=1)
@@ -271,24 +275,17 @@ with backend_tab:
         team_members = st.number_input("Team Members", value=2)
         monthly_salary = st.number_input("Monthly Salary per Member ($)", value=5000)
 
-        # Overhead
-        st.markdown("### Existing Overhead")
         use_overhead = st.checkbox("Include Existing Overhead?")
         existing_overhead = st.number_input("Monthly Overhead ($)", value=2000) if use_overhead else 0
 
-        # Reinvestment Mode (Yearly Only)
-        if time_view == "Yearly":
-            st.markdown("### Reinvestment Style")
-            reinvest_mode = st.radio("Compounding Mode", ["Light", "Moderate", "Aggressive"])
-
     with main:
-        # Funnel Progression
+        # Funnel Calculations
         contacted = leads_to_reengage * (contact_rate / 100)
         booked = contacted * (booking_rate / 100)
         showed = booked * (show_rate / 100)
         closed = showed * (close_rate / 100)
 
-        # Financials
+        # Financial Calculations
         revenue = closed * client_value * multiplier
         tech_cost = monthly_tech_stack * multiplier
         salary_cost = team_members * monthly_salary * multiplier
@@ -297,7 +294,7 @@ with backend_tab:
         net_profit = revenue - total_cost
         roi = (net_profit / total_cost * 100) if total_cost else 0
 
-        # Display Funnel Summary
+        # Funnel Metrics
         st.subheader(f"\U0001F4CA Re-engagement Funnel Results ({time_view} View)")
         c1, c2, c3 = st.columns(3)
         c1.metric("Re-engagement Pool", f"{leads_to_reengage:,}")
@@ -314,6 +311,19 @@ with backend_tab:
         c3.metric("Net Profit", f"${net_profit:,.2f}")
         st.metric("ROI", f"{roi:.2f}%")
 
+        # Monthly ROI Ranges
+        if time_view == "Monthly":
+            base_monthly_roi = (net_profit / total_cost) if total_cost else 0
+            light_roi = base_monthly_roi * 0.25 * 100
+            moderate_roi = base_monthly_roi * 0.5 * 100
+            aggressive_roi = base_monthly_roi * 100
+
+            st.subheader("📊 Monthly ROI Range (Realization Levels)")
+            c1, c2, c3 = st.columns(3)
+            c1.metric("Light (25%)", f"{light_roi:.2f}%")
+            c2.metric("Moderate (50%)", f"{moderate_roi:.2f}%")
+            c3.metric("Aggressive (100%)", f"{aggressive_roi:.2f}%")
+
         # Compounded ROI (Yearly Only)
         if time_view == "Yearly":
             base_monthly_roi = (net_profit / total_cost / 12) if total_cost else 0
@@ -326,19 +336,6 @@ with backend_tab:
             compound_roi = ((1 + r) ** 12 - 1) * 100 if r > -1 else 0
             st.metric("Compounded ROI (12 mo)", f"{compound_roi:.2f}%")
 
-        # Monthly ROI Breakdown (only in Monthly View)
-        if time_view == "Monthly":
-            base_monthly_roi = (net_profit / total_cost) if total_cost else 0
-            light_roi = base_monthly_roi * 0.25 * 100
-            moderate_roi = base_monthly_roi * 0.5 * 100
-            aggressive_roi = base_monthly_roi * 100
-
-            st.subheader("📊 Monthly ROI Range (Based on Realization Levels)")
-            c1, c2, c3 = st.columns(3)
-            c1.metric("Light (25%)", f"{light_roi:.2f}%")
-            c2.metric("Moderate (50%)", f"{moderate_roi:.2f}%")
-            c3.metric("Aggressive (100%)", f"{aggressive_roi:.2f}%")
-
         # Funnel Chart
         st.markdown("### Funnel Drop-Off Chart")
         funnel_df = pd.DataFrame({
@@ -348,7 +345,7 @@ with backend_tab:
         funnel_fig = px.bar(funnel_df, x="Stage", y="Volume", text_auto=True)
         st.plotly_chart(funnel_fig, use_container_width=True)
 
-        # Revenue Breakdown
+        # Revenue Breakdown Chart
         st.markdown("### Revenue Breakdown: Cost vs Net Profit")
         breakdown_df = pd.DataFrame({
             "Component": ["Tech Stack", "Salaries", "Overhead", "Net Profit"],
