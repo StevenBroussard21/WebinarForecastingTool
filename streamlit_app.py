@@ -115,6 +115,10 @@ with forecast_tab:
         with st.expander("Budget & Cost"):
             budget = st.number_input("Total Ad Budget ($)", min_value=0.0, value=1000.0)
             additional_costs = st.number_input("Other Campaign Costs ($)", min_value=0.0, value=0.0)
+            include_overhead = st.checkbox("Include Salaries & Overhead?", value=False)
+            salaries_overhead = 0.0
+            if include_overhead:
+                salaries_overhead = st.number_input("Salaries & Overhead ($)", min_value=0.0, value=0.0)
             cpc = st.number_input("Estimated Cost Per Click ($)", min_value=0.01, value=1.5)
             percent_paid_traffic = st.slider("% of Sales Attributed to Paid Traffic", 0, 100, 100)
 
@@ -130,7 +134,8 @@ with forecast_tab:
             cogs_per_sale = st.number_input("Cost of Goods per Sale ($)", min_value=0.0, value=100.0)
 
     with main:
-        clicks = budget / cpc
+        total_spend = budget + additional_costs + (salaries_overhead if include_overhead else 0.0)
+        clicks = budget / cpc if cpc > 0 else 0
         signups = clicks * (landing_cr / 100)
         attendees = signups * (attendance_rate / 100)
         leads = attendees if treat_all_as_leads else attendees * (lead_rate / 100)
@@ -139,7 +144,6 @@ with forecast_tab:
         paid_sales = sales * (percent_paid_traffic / 100)
         revenue = paid_sales * avg_deal_value
 
-        total_spend = budget + additional_costs
         roas = revenue / total_spend if total_spend > 0 else 0
         cost_per_attendee = total_spend / attendees if attendees > 0 else 0
         cost_per_lead = total_spend / leads if leads > 0 else 0
@@ -185,11 +189,25 @@ with forecast_tab:
         st.markdown("### Funnel Visualization")
         funnel_stages = ["Clicks", "Signups", "Attendees", "Qualified Leads", "Sales"]
         funnel_values = [clicks, signups, attendees, leads, sales]
-        fig = go.Figure(go.Funnel(y=funnel_stages, x=funnel_values, textinfo="value+percent previous", marker={"color": "royalblue"}))
-        st.plotly_chart(fig, use_container_width=True)
+        funnel_fig = go.Figure(go.Funnel(y=funnel_stages, x=funnel_values, textinfo="value+percent previous", marker={"color": "royalblue"}))
+        st.plotly_chart(funnel_fig, use_container_width=True)
+
+        st.markdown("### Cost Breakdown")
+        spend_labels = ['Ad Budget', 'Other Costs']
+        spend_values = [budget, additional_costs]
+        if include_overhead:
+            spend_labels.append('Salaries & Overhead')
+            spend_values.append(salaries_overhead)
+
+        cost_breakdown_fig = go.Figure(data=[
+            go.Bar(name='Spend', x=spend_labels, y=spend_values),
+            go.Bar(name='Revenue', x=['Estimated Revenue'], y=[revenue])
+        ])
+        cost_breakdown_fig.update_layout(barmode='group', title="Campaign Spend vs Revenue")
+        st.plotly_chart(cost_breakdown_fig, use_container_width=True)
 
         st.markdown("### ROAS Performance")
-        gauge = go.Figure(go.Indicator(
+        gauge_fig = go.Figure(go.Indicator(
             mode="gauge+number+delta",
             value=roas,
             delta={'reference': benchmarks['roas']},
@@ -208,14 +226,13 @@ with forecast_tab:
             },
             title={'text': "Return on Ad Spend (ROAS)"}
         ))
-        st.plotly_chart(gauge, use_container_width=True)
+        st.plotly_chart(gauge_fig, use_container_width=True)
 
         st.download_button(
             "Download Forecast as CSV",
             pd.DataFrame([data]).to_csv(index=False).encode('utf-8'),
             file_name="webinar_forecast.csv"
         )
-
 
 
 # --------------------------
