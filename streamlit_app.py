@@ -251,9 +251,10 @@ with backend_tab:
         time_view = st.radio("Show Forecast As:", ["Monthly", "Yearly"])
         multiplier = 12 if time_view == "Yearly" else 1
 
-        # Reinvestment Mode (now shown always, but affects compounding only if yearly)
-        st.markdown("### Reinvestment Style")
-        reinvest_mode = st.radio("Compounding Mode", ["Light", "Moderate", "Aggressive"])
+        # Reinvestment Mode – only show if Yearly selected
+        if time_view == "Yearly":
+            st.markdown("### Reinvestment Style")
+            reinvest_mode = st.radio("Compounding Mode", ["Light", "Moderate", "Aggressive"])
 
         # CRM Lead Inputs
         st.markdown("### Backend Funnel Assumptions")
@@ -311,7 +312,7 @@ with backend_tab:
         c3.metric("Net Profit", f"${net_profit:,.2f}")
         st.metric("ROI", f"{roi:.2f}%")
 
-        # Monthly ROI Ranges
+        # Monthly ROI Ranges (Only if Monthly View)
         if time_view == "Monthly":
             base_monthly_roi = (net_profit / total_cost) if total_cost else 0
             light_roi = base_monthly_roi * 0.25 * 100
@@ -319,6 +320,24 @@ with backend_tab:
             aggressive_roi = base_monthly_roi * 100
 
             st.subheader("📊 Monthly ROI Range (Realization Levels)")
+            st.markdown("ℹ️ **What this means:** These tiers reflect what % of your full monthly ROI you're realistically capturing.")
+            st.markdown("""
+            **• Light (25%)** — Conservative: lower show-up or close rates  
+            **• Moderate (50%)** — Balanced: solid but not optimized operations  
+            **• Aggressive (100%)** — Best-case: high efficiency at every stage  
+            
+            **Formula:**  
+            ROI = Net Profit / Total Cost  
+            Tiered ROI = ROI × Realization %  
+            
+            **Example:** If full ROI = 100%, light = 25%, moderate = 50%, aggressive = 100%
+            
+            **Use Case (Andre’s Offer):**  
+            - Light = limited follow-up & low team capacity  
+            - Moderate = average booking + show-up rates  
+            - Aggressive = white-glove follow-up + qualified booked calls  
+            """)
+
             c1, c2, c3 = st.columns(3)
             c1.metric("Light (25%)", f"{light_roi:.2f}%")
             c2.metric("Moderate (50%)", f"{moderate_roi:.2f}%")
@@ -333,10 +352,21 @@ with backend_tab:
                 r = base_monthly_roi * 0.5
             else:
                 r = base_monthly_roi
-            compound_roi = ((1 + r) ** 12 - 1) * 100 if r > -1 else 0
-            st.metric("Compounded ROI (12 mo)", f"{compound_roi:.2f}%")
 
-        # Funnel Chart
+            compound_roi = ((1 + r) ** 12 - 1) * 100 if r > -1 else 0
+
+            st.metric("Compounded ROI (12 mo)", f"{compound_roi:.2f}%")
+            st.markdown("ℹ️ **What this means:** This assumes you reinvest part or all of your monthly profit every month for 12 months.")
+            st.markdown("""
+            **Formula:**  
+            Compounded ROI = ((1 + monthly ROI) ^ 12 - 1) × 100  
+            
+            **Example:**  
+            If monthly ROI = 25%  
+            Compounded ROI = ((1 + 0.25) ^ 12 - 1) × 100 = ~1188%
+            """)
+
+        # Funnel Drop-Off Chart
         st.markdown("### Funnel Drop-Off Chart")
         funnel_df = pd.DataFrame({
             "Stage": ["Re-engagement Pool", "Contacted", "Booked", "Showed", "Closed"],
