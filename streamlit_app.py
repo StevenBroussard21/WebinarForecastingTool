@@ -95,7 +95,7 @@ st.markdown("# Campaign Planning Suite")
 st.markdown("Use this tool to forecast webinar campaign outcomes and profitability based on ad spend, conversion rates, and product details.")
 
 # Tabs
-backend_tab, forecast_tab, planner_tab  = st.tabs(["Backend System ROI Forecast", "Webinar Forecast", "Multi-Channel Budget Planner"])
+backend_tab, forecast_tab, book_a_call_tab  = st.tabs(["CRM ROI Forecast", "Webinar Forecast", "Book A Call Forecast"])
 
 # --------------------------
 # TAB 1: Backend System ROI Forecast
@@ -415,126 +415,89 @@ with forecast_tab:
 
 
 # --------------------------
-# TAB 3: Multi-Channel Budget Planner
+# TAB 3: Book A Call Forecast
 # --------------------------
-with planner_tab:
-    st.markdown("## Multi-Channel Budget Planner")
-    st.markdown("Distribute your ad budget across platforms and forecast performance based on campaign KPIs.")
+with book_a_call_tab:
+    sidebar, main = st.columns([1, 3])
 
-    total_budget = st.number_input("Total Campaign Budget ($)", min_value=0.0, value=5000.0)
-    kpi_goal = st.selectbox("Select your campaign goal:", ["Clicks", "Leads", "Sales", "Impressions"])
+    with sidebar:
+        st.markdown("### Configure Your Book-a-Call Funnel")
 
-    channels = ["Meta", "Google", "LinkedIn", "YouTube", "TikTok"]
-    allocations = {}
-    col1, col2 = st.columns(2)
-    for i, ch in enumerate(channels):
-        with (col1 if i % 2 == 0 else col2):
-            allocations[ch] = st.slider(f"{ch} Allocation (%)", 0, 100, 20)
+        ad_spend = st.number_input("Monthly Ad Spend ($)", value=3000)
+        cost_per_click = st.number_input("Average CPC ($)", value=2.50)
 
-    if sum(allocations.values()) != 100:
-        st.warning(f"Your allocations add up to {sum(allocations.values())}%. Please adjust to 100%.")
-    else:
-        st.success("✅ Allocation adds up to 100%")
+        with st.expander("Funnel Conversion Rates"):
+            landing_page_rate = st.slider("Landing Page → Booked Call (%)", 0, 100, 10)
+            show_rate = st.slider("Show Rate (%)", 0, 100, 70)
+            close_rate = st.slider("Close Rate (%)", 0, 100, 20)
 
-        default_kpis = {
-            "Clicks": {"Meta": 2.5, "Google": 3.0, "LinkedIn": 4.0, "YouTube": 2.8, "TikTok": 2.0},
-            "Leads": {"Meta": 30, "Google": 40, "LinkedIn": 80, "YouTube": 35, "TikTok": 25},
-            "Sales": {"Meta": 100, "Google": 120, "LinkedIn": 200, "YouTube": 110, "TikTok": 90},
-            "Impressions": {"Meta": 6, "Google": 7, "LinkedIn": 9, "YouTube": 5, "TikTok": 4}
-        }
+        with st.expander("Product & Revenue Details"):
+            client_value = st.number_input("Client Value ($)", value=1500)
 
-        st.markdown("### Customize Cost per Result")
-        enable_roi = st.checkbox("Estimate revenue and ROI?")
+        with st.expander("📌 Forecast Accuracy Disclaimer", expanded=True):
+            st.markdown("""
+            #### ⚠️ Important Note on Forecast Accuracy
+            This tool provides projected performance based on your inputs — but real-world ad performance varies due to:
 
-        use_roi_values = {}
-        if enable_roi:
-            st.caption("Enter the value per lead or sale for each platform.")
-            for ch in channels:
-                if kpi_goal == "Sales":
-                    use_roi_values[ch] = st.number_input(
-                        f"{ch} - Average Order Value ($)",
-                        min_value=1.0,
-                        value=250.0,
-                        step=10.0,
-                        key=f"roi_sale_{ch}"
-                    )
-                elif kpi_goal == "Leads":
-                    use_roi_values[ch] = st.number_input(
-                        f"{ch} - Value per Lead ($)",
-                        min_value=1.0,
-                        value=50.0,
-                        step=5.0,
-                        key=f"roi_lead_{ch}"
-                    )
+            - 🎯 Targeting accuracy and audience quality
+            - 📈 Seasonality or platform shifts
+            - 🧪 Creative performance and ad fatigue
+            - ⚙️ Booking system UX and mobile friendliness
+            - ⏱ Attribution lag (leads convert after the month ends)
 
-        results = []
-        total_forecast = 0
-        total_revenue = 0
-        total_roi = 0
-        roi_count = 0
+            **Why use this tool anyway?**
+            - Creates directional models to guide spend and goals
+            - Helps define baseline expectations and KPIs
+            - Makes it easier to pivot after running a test campaign
 
-        for ch in channels:
-            cost = st.number_input(
-                f"{ch} - Cost per {kpi_goal}",
-                value=float(default_kpis[kpi_goal][ch]),
-                min_value=0.01,
-                step=0.01,
-                key=f"cost_{ch}"
-            )
-            budget_ch = (allocations[ch] / 100) * total_budget
-            forecast = (budget_ch / cost) * 1000 if kpi_goal == "Impressions" else budget_ch / cost
-            total_forecast += forecast
+            👉 After 2–4 weeks of ads, replace these assumptions with real data to re-forecast accurately.
+            """)
 
-            cost_per_result = budget_ch / forecast if forecast > 0 else 0
-            break_even_cpr = None
-            roi = None
-            revenue = None
-            warning_msg = ""
+    with main:
+        # Funnel logic
+        clicks = ad_spend / cost_per_click
+        booked_calls = clicks * (landing_page_rate / 100)
+        showed = booked_calls * (show_rate / 100)
+        closed = showed * (close_rate / 100)
 
-            if enable_roi and ch in use_roi_values:
-                break_even_cpr = use_roi_values[ch]
-                revenue = forecast * break_even_cpr
-                roi = ((revenue - budget_ch) / budget_ch * 100) if budget_ch > 0 else 0
-                total_revenue += revenue
-                total_roi += roi
-                roi_count += 1
-                if roi < 0:
-                    warning_msg = "⚠️ Negative ROI"
+        revenue = closed * client_value
+        net_profit = revenue - ad_spend
+        roi = (net_profit / ad_spend * 100) if ad_spend else 0
+        roas = revenue / ad_spend if ad_spend else 0
 
-            results.append({
-                "Channel": ch,
-                "Allocated Budget ($)": round(budget_ch, 2),
-                f"Cost per {kpi_goal}": round(cost, 2),
-                f"Forecasted {kpi_goal}": int(forecast),
-                "Cost per Result ($)": round(cost_per_result, 2),
-                "Break-even CPR ($)": round(break_even_cpr, 2) if break_even_cpr else None,
-                "Estimated Revenue ($)": round(revenue, 2) if revenue else None,
-                "ROI (%)": round(roi, 2) if roi is not None else None,
-                "Notes": warning_msg
-            })
+        # ROI tiers
+        base_monthly_roi = net_profit / ad_spend if ad_spend else 0
+        light_roi = base_monthly_roi * 0.25 * 100
+        moderate_roi = base_monthly_roi * 0.5 * 100
+        aggressive_roi = base_monthly_roi * 100
 
-        result_df = pd.DataFrame(results)
+        st.subheader("📈 Forecast Summary")
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Booked Calls", f"{int(booked_calls):,}")
+        col2.metric("Showed", f"{int(showed):,}")
+        col3.metric("Closed Clients", f"{int(closed):,}")
+        col1.metric("Revenue", f"${revenue:,.2f}")
+        col2.metric("Net Profit", f"${net_profit:,.2f}")
+        col3.metric("ROI", f"{roi:.2f}%")
+        st.metric("ROAS", f"{roas:.2f}x")
 
-        def highlight_expensive(s):
-            return ["background-color: #ffe6e6" if (s["Break-even CPR ($)"] is not None and s["Cost per Result ($)"] > s["Break-even CPR ($)"]) else "" for i in s.index]
+        st.subheader("📊 Monthly ROI Range (Realization Levels)")
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Light (25%)", f"{light_roi:.2f}%")
+        c2.metric("Moderate (50%)", f"{moderate_roi:.2f}%")
+        c3.metric("Aggressive (100%)", f"{aggressive_roi:.2f}%")
 
-        st.markdown("### Forecasted Performance by Channel")
-        styled_df = result_df.style.apply(highlight_expensive, axis=1)
-        st.dataframe(styled_df)
+        with st.expander("💡 Why ROI tiers still matter even with ad variables"):
+            st.markdown(f"""
+            Even though paid traffic performance is unpredictable at first, these ROI tiers give us a lens on **execution quality**:
 
-        st.markdown(f"### Total Forecasted {kpi_goal}: **{int(total_forecast):,}**")
+            - **Light (25%)**: Poor show rate, low close rate, or weak follow-up
+            - **Moderate (50%)**: Booking system works, follow-up is decent
+            - **Aggressive (100%)**: Team executes well, shows up, closes well
 
-        if enable_roi:
-            avg_roi = total_roi / roi_count if roi_count > 0 else 0
-            st.metric("Total Estimated Revenue", f"${total_revenue:,.2f}")
-            st.metric("Average ROI Across Channels", f"{avg_roi:.2f}%")
-
-        chart = px.bar(result_df, x="Channel", y=f"Forecasted {kpi_goal}", color="Channel", title=f"Forecasted {kpi_goal} by Channel")
-        st.plotly_chart(chart, use_container_width=True)
-
-        cost_chart = px.bar(result_df, x="Channel", y="Cost per Result ($)", color="Channel", title="Cost per Result by Channel")
-        st.plotly_chart(cost_chart, use_container_width=True)
-
-        csv_out = result_df.to_csv(index=False).encode("utf-8")
-        st.download_button("Download Channel KPI Forecast as CSV", data=csv_out, file_name="kpi_budget_forecast.csv", mime="text/csv")
+            Based on your inputs:
+            - **{int(clicks):,} clicks** → **{int(booked_calls):,} booked calls**
+            - **{int(showed):,} showed** → **{int(closed):,} closed**
+            - Full ROI: **{roi:.2f}%** | Realistic Range: **{light_roi:.2f}%–{aggressive_roi:.2f}%**
+            """)
 
