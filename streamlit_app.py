@@ -248,45 +248,53 @@ with backend_tab:
     with sidebar:
         st.markdown("### Backend Funnel Assumptions")
 
+        # CRM Lead Inputs
         total_crm_leads = st.number_input("Total Leads in CRM", value=2000, step=1)
         active_leads = st.number_input("Currently Engaged or Booked Leads", value=500, step=1)
         leads_to_reengage = total_crm_leads - active_leads
 
+        # Conversion Rates
         st.markdown("### Funnel Conversion Rates")
         contact_rate = st.slider("Contact Rate (%)", 0, 100, 70)
         booking_rate = st.slider("Booking Rate (%)", 0, 100, 30)
         show_rate = st.slider("Show Rate (%)", 0, 100, 75)
         close_rate = st.slider("Close Rate (%)", 0, 100, 20)
 
-        st.markdown("### Revenue & Cost Assumptions")
+        # Revenue & Core Costs
+        st.markdown("### Revenue & Operational Costs")
         client_value = st.number_input("Client Value ($)", value=1500)
         monthly_tech_stack = st.number_input("Monthly Tech Stack ($)", value=900)
         team_members = st.number_input("Team Members", value=2)
         monthly_salary = st.number_input("Monthly Salary per Member ($)", value=5000)
 
-        st.markdown("### Optional Add-ons")
-        use_sms = st.checkbox("Add SMS Automation ($300/mo)", value=True)
-        use_email = st.checkbox("Add Email Platform ($150/mo)", value=True)
-        addons = 0
-        if use_sms: addons += 300
-        if use_email: addons += 150
+        # Overhead
+        st.markdown("### Existing Overhead")
+        use_overhead = st.checkbox("Include Existing Overhead?")
+        existing_overhead = st.number_input("Monthly Overhead ($)", value=2000) if use_overhead else 0
+
+        # View Toggle
+        st.markdown("### View Mode")
+        time_view = st.radio("Show Forecast As:", ["Monthly", "Yearly"])
+        multiplier = 12 if time_view == "Yearly" else 1
 
     with main:
+        # Funnel Logic
         contacted = leads_to_reengage * (contact_rate / 100)
         booked = contacted * (booking_rate / 100)
         showed = booked * (show_rate / 100)
         closed = showed * (close_rate / 100)
 
-        revenue = closed * client_value
-        tech_cost = monthly_tech_stack
-        salary_cost = team_members * monthly_salary
-        addon_cost = addons
-        total_cost = tech_cost + salary_cost + addon_cost
+        # Financial Logic
+        revenue = closed * client_value * multiplier
+        tech_cost = monthly_tech_stack * multiplier
+        salary_cost = team_members * monthly_salary * multiplier
+        overhead_cost = existing_overhead * multiplier
+        total_cost = tech_cost + salary_cost + overhead_cost
         net_profit = revenue - total_cost
         roi = (net_profit / total_cost * 100) if total_cost else 0
 
-        # Metrics Summary
-        st.subheader("\U0001F4CA Re-engagement Funnel Results")
+        # Summary Metrics
+        st.subheader(f"\U0001F4CA Re-engagement Funnel Results ({time_view} View)")
         c1, c2, c3 = st.columns(3)
         c1.metric("Re-engagement Pool", f"{leads_to_reengage:,}")
         c2.metric("Contacted", f"{int(contacted):,}")
@@ -302,7 +310,7 @@ with backend_tab:
         c3.metric("Net Profit", f"${net_profit:,.2f}")
         st.metric("ROI", f"{roi:.2f}%")
 
-        # Funnel Drop-Off Chart
+        # Funnel Visualization
         st.markdown("### Funnel Drop-Off Chart")
         funnel_df = pd.DataFrame({
             "Stage": ["Re-engagement Pool", "Contacted", "Booked", "Showed", "Closed"],
@@ -311,11 +319,11 @@ with backend_tab:
         funnel_fig = px.bar(funnel_df, x="Stage", y="Volume", text_auto=True)
         st.plotly_chart(funnel_fig, use_container_width=True)
 
-        # Stacked Bar Chart for Cost Breakdown + Net Profit
+        # Cost Breakdown Visualization
         st.markdown("### Revenue Breakdown: Cost vs Net Profit")
         breakdown_df = pd.DataFrame({
-            "Component": ["Tech Stack", "Salaries", "Add-ons", "Net Profit"],
-            "Value": [tech_cost, salary_cost, addon_cost, net_profit]
+            "Component": ["Tech Stack", "Salaries", "Overhead", "Net Profit"],
+            "Value": [tech_cost, salary_cost, overhead_cost, net_profit]
         })
         stacked_fig = px.bar(
             breakdown_df,
@@ -331,13 +339,12 @@ with backend_tab:
         # Strategy Summary
         if st.checkbox("Show Strategy Summary"):
             st.markdown(f"""
-                ### Strategy Summary
+                ### Strategy Summary ({time_view} View)
                 Out of **{total_crm_leads:,} leads in the CRM**, **{leads_to_reengage:,}** were identified for re-engagement.
-                Through the white-glove system:
+                Through the backend funnel:
                 - **{int(contacted):,}** contacted → **{int(booked):,}** booked → **{int(showed):,}** showed → **{int(closed):,}** clients closed
                 - Revenue: **${revenue:,.2f}**, Cost: **${total_cost:,.2f}**, Net Profit: **${net_profit:,.2f}**, ROI: **{roi:.2f}%**
             """)
-
 
 # --------------------------
 # TAB 3: Multi-Channel Budget Planner
