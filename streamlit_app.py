@@ -105,7 +105,6 @@ with forecast_tab:
 
     with sidebar:
         st.markdown("### Configure Your Campaign")
-        mode = st.radio("Input Method", ["Manual Input", "Upload CSV Data"])
 
         benchmarks = {
             "landing_cr": 25, "attendance_rate": 40, "lead_rate": 25,
