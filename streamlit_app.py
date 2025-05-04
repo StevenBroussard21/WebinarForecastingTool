@@ -107,6 +107,33 @@ with forecast_tab:
         st.markdown("### Configure Your Campaign")
         mode = st.radio("Input Method", ["Manual Input", "Upload CSV Data"])
 
+        benchmarks = {
+            "landing_cr": 25, "attendance_rate": 40, "lead_rate": 25,
+            "sales_rate": 15, "roas": 3.0, "cpl": 30, "profit_margin": 25
+        }
+        industry_benchmarks = {
+            "SaaS": {"landing_cr": 25, "attendance_rate": 50, "lead_rate": 30, "sales_rate": 15, "cpc": 3.5},
+            "Education": {"landing_cr": 20, "attendance_rate": 40, "lead_rate": 25, "sales_rate": 8, "cpc": 2.75},
+            "Healthcare": {"landing_cr": 15, "attendance_rate": 35, "lead_rate": 20, "sales_rate": 10, "cpc": 4.25},
+            "Consulting": {"landing_cr": 30, "attendance_rate": 60, "lead_rate": 35, "sales_rate": 25, "cpc": 3.0}
+        }
+
+        with st.expander("Look up Industry Benchmarks"):
+            selected_industry = st.selectbox("Select your industry:", list(industry_benchmarks.keys()))
+            if selected_industry:
+                bm = industry_benchmarks[selected_industry]
+                st.markdown(f"**Landing Page CR:** {bm['landing_cr']}%")
+                st.markdown(f"**Attendance Rate:** {bm['attendance_rate']}%")
+                st.markdown(f"**Lead Rate:** {bm['lead_rate']}%")
+                st.markdown(f"**Sales Rate:** {bm['sales_rate']}%")
+                st.markdown(f"**Avg CPC:** ${bm['cpc']}")
+                if st.button("Use these benchmarks"):
+                    st.session_state.use_benchmarks = True
+                    st.session_state.benchmark_values = bm
+
+        use_benchmarks = st.session_state.get("use_benchmarks", False)
+        bm_values = st.session_state.get("benchmark_values", benchmarks)
+
         with st.expander("Budget & Cost"):
             budget = st.number_input("Total Ad Budget ($)", min_value=0.0, value=1000.0)
             cpc = st.number_input("Estimated Cost Per Click ($)", min_value=0.01, value=bm_values.get("cpc", 1.5))
@@ -431,6 +458,10 @@ with planner_tab:
         st.plotly_chart(chart, use_container_width=True)
 
         cost_chart = px.bar(result_df, x="Channel", y="Cost per Result ($)", color="Channel", title="Cost per Result by Channel")
+        st.plotly_chart(cost_chart, use_container_width=True)
+
+        csv_out = result_df.to_csv(index=False).encode("utf-8")
+        st.download_button("Download Channel KPI Forecast as CSV", data=csv_out, file_name="kpi_budget_forecast.csv", mime="text/csv")
         st.plotly_chart(cost_chart, use_container_width=True)
 
         csv_out = result_df.to_csv(index=False).encode("utf-8")
