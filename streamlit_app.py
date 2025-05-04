@@ -139,7 +139,6 @@ with forecast_tab:
         attendees = signups * (attendance_rate / 100)
         leads = attendees if treat_all_as_leads else attendees * (lead_rate / 100)
         sales = leads * (sales_rate / 100)
-
         paid_sales = sales * (percent_paid_traffic / 100)
         revenue = paid_sales * avg_deal_value
 
@@ -186,9 +185,12 @@ with forecast_tab:
         col2.metric("Profit Margin", f"{profit_margin:.2f}%", delta=f"vs benchmark: {benchmarks['profit_margin']}%")
 
         st.markdown("### Funnel Visualization")
-        funnel_stages = ["Clicks", "Signups", "Attendees", "Qualified Leads", "Sales"]
-        funnel_values = [clicks, signups, attendees, leads, sales]
-        funnel_fig = go.Figure(go.Funnel(y=funnel_stages, x=funnel_values, textinfo="value+percent previous", marker={"color": "royalblue"}))
+        funnel_fig = go.Figure(go.Funnel(
+            y=["Clicks", "Signups", "Attendees", "Qualified Leads", "Sales"],
+            x=[clicks, signups, attendees, leads, sales],
+            textinfo="value+percent previous",
+            marker={"color": "royalblue"}
+        ))
         st.plotly_chart(funnel_fig, use_container_width=True)
 
         st.markdown("### Cost Breakdown")
@@ -198,12 +200,12 @@ with forecast_tab:
             spend_labels.append('Salaries & Overhead')
             spend_values.append(salaries_overhead)
 
-        cost_breakdown_fig = go.Figure(data=[
+        breakdown_fig = go.Figure(data=[
             go.Bar(name='Spend', x=spend_labels, y=spend_values),
             go.Bar(name='Revenue', x=['Estimated Revenue'], y=[revenue])
         ])
-        cost_breakdown_fig.update_layout(barmode='group', title="Campaign Spend vs Revenue")
-        st.plotly_chart(cost_breakdown_fig, use_container_width=True)
+        breakdown_fig.update_layout(barmode='group', title="Campaign Spend vs Revenue")
+        st.plotly_chart(breakdown_fig, use_container_width=True)
 
         st.markdown("### ROAS Performance")
         gauge_fig = go.Figure(go.Indicator(
