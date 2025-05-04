@@ -246,9 +246,13 @@ with backend_tab:
     sidebar, main = st.columns([1, 3])
 
     with sidebar:
-        st.markdown("### Backend Funnel Assumptions")
+        # Time View Toggle (moved to top)
+        st.markdown("### View Mode")
+        time_view = st.radio("Show Forecast As:", ["Monthly", "Yearly"])
+        multiplier = 12 if time_view == "Yearly" else 1
 
         # CRM Lead Inputs
+        st.markdown("### Backend Funnel Assumptions")
         total_crm_leads = st.number_input("Total Leads in CRM", value=2000, step=1)
         active_leads = st.number_input("Currently Engaged or Booked Leads", value=500, step=1)
         leads_to_reengage = total_crm_leads - active_leads
@@ -272,11 +276,6 @@ with backend_tab:
         use_overhead = st.checkbox("Include Existing Overhead?")
         existing_overhead = st.number_input("Monthly Overhead ($)", value=2000) if use_overhead else 0
 
-        # View Toggle
-        st.markdown("### View Mode")
-        time_view = st.radio("Show Forecast As:", ["Monthly", "Yearly"])
-        multiplier = 12 if time_view == "Yearly" else 1
-
     with main:
         # Funnel Logic
         contacted = leads_to_reengage * (contact_rate / 100)
@@ -292,6 +291,10 @@ with backend_tab:
         total_cost = tech_cost + salary_cost + overhead_cost
         net_profit = revenue - total_cost
         roi = (net_profit / total_cost * 100) if total_cost else 0
+
+        # Compounded ROI (12-month view based on monthly ROI)
+        monthly_roi_decimal = (net_profit / total_cost) if (total_cost and multiplier == 1) else (net_profit / total_cost / 12)
+        compound_roi = ((1 + monthly_roi_decimal) ** 12 - 1) * 100 if monthly_roi_decimal > -1 else 0
 
         # Summary Metrics
         st.subheader(f"\U0001F4CA Re-engagement Funnel Results ({time_view} View)")
@@ -309,6 +312,7 @@ with backend_tab:
         c2.metric("Total Cost", f"${total_cost:,.2f}")
         c3.metric("Net Profit", f"${net_profit:,.2f}")
         st.metric("ROI", f"{roi:.2f}%")
+        st.metric("Compounded ROI (12 mo)", f"{compound_roi:.2f}%")
 
         # Funnel Visualization
         st.markdown("### Funnel Drop-Off Chart")
@@ -343,7 +347,8 @@ with backend_tab:
                 Out of **{total_crm_leads:,} leads in the CRM**, **{leads_to_reengage:,}** were identified for re-engagement.
                 Through the backend funnel:
                 - **{int(contacted):,}** contacted → **{int(booked):,}** booked → **{int(showed):,}** showed → **{int(closed):,}** clients closed
-                - Revenue: **${revenue:,.2f}**, Cost: **${total_cost:,.2f}**, Net Profit: **${net_profit:,.2f}**, ROI: **{roi:.2f}%**
+                - Revenue: **${revenue:,.2f}**, Cost: **${total_cost:,.2f}**, Net Profit: **${net_profit:,.2f}**
+                - ROI: **{roi:.2f}%**, Compounded ROI (12 mo): **{compound_roi:.2f}%**
             """)
 
 # --------------------------
