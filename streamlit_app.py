@@ -95,7 +95,7 @@ st.markdown("# Campaign Planning Suite")
 st.markdown("Use this tool to forecast webinar campaign outcomes and profitability based on ad spend, conversion rates, and product details.")
 
 # Tabs
-backend_tab, forecast_tab, book_a_call_tab  = st.tabs(["CRM ROI Forecast", "Webinar Forecast", "Book A Call Forecast"])
+backend_tab, forecast_tab, book_a_call_tab = st.tabs(["CRM ROI Forecast", "Webinar Forecast", "Book A Call Forecast"])
 
 # --------------------------
 # TAB 1: Backend System ROI Forecast
