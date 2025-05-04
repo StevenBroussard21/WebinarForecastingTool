@@ -423,16 +423,16 @@ with book_a_call_tab:
     with sidebar:
         st.markdown("### Configure Your Book-a-Call Funnel")
 
-        ad_spend = st.number_input("Monthly Ad Spend ($)", value=3000)
-        cost_per_click = st.number_input("Average CPC ($)", value=2.50)
+        ad_spend = st.number_input("Monthly Ad Spend ($)", value=3000, key="ad_spend_book")
+        cost_per_click = st.number_input("Average CPC ($)", value=2.50, key="cpc_book")
 
         with st.expander("Funnel Conversion Rates"):
-            landing_page_rate = st.slider("Landing Page → Booked Call (%)", 0, 100, 10)
-            show_rate = st.slider("Show Rate (%)", 0, 100, 70)
-            close_rate = st.slider("Close Rate (%)", 0, 100, 20)
+            landing_page_rate = st.slider("Landing Page → Booked Call (%)", 0, 100, 10, key="landing_cr_book")
+            show_rate = st.slider("Show Rate (%)", 0, 100, 70, key="show_rate_book")
+            close_rate = st.slider("Close Rate (%)", 0, 100, 20, key="close_rate_book")
 
         with st.expander("Product & Revenue Details"):
-            client_value = st.number_input("Client Value ($)", value=1500)
+            client_value = st.number_input("Client Value ($)", value=1500, key="client_value_book")
 
         with st.expander("📌 Forecast Accuracy Disclaimer", expanded=True):
             st.markdown("""
@@ -500,4 +500,3 @@ with book_a_call_tab:
             - **{int(showed):,} showed** → **{int(closed):,} closed**
             - Full ROI: **{roi:.2f}%** | Realistic Range: **{light_roi:.2f}%–{aggressive_roi:.2f}%**
             """)
-
