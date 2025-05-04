@@ -246,7 +246,7 @@ with backend_tab:
     sidebar, main = st.columns([1, 3])
 
     with sidebar:
-        # Time View Toggle (moved to top)
+        # Time View Toggle
         st.markdown("### View Mode")
         time_view = st.radio("Show Forecast As:", ["Monthly", "Yearly"])
         multiplier = 12 if time_view == "Yearly" else 1
@@ -264,7 +264,7 @@ with backend_tab:
         show_rate = st.slider("Show Rate (%)", 0, 100, 75)
         close_rate = st.slider("Close Rate (%)", 0, 100, 20)
 
-        # Revenue & Core Costs
+        # Revenue & Costs
         st.markdown("### Revenue & Operational Costs")
         client_value = st.number_input("Client Value ($)", value=1500)
         monthly_tech_stack = st.number_input("Monthly Tech Stack ($)", value=900)
@@ -275,6 +275,11 @@ with backend_tab:
         st.markdown("### Existing Overhead")
         use_overhead = st.checkbox("Include Existing Overhead?")
         existing_overhead = st.number_input("Monthly Overhead ($)", value=2000) if use_overhead else 0
+
+        # Reinvestment Mode
+        if time_view == "Yearly":
+            st.markdown("### Reinvestment Style")
+            reinvest_mode = st.radio("Compounding Mode", ["Light", "Moderate", "Aggressive"])
 
     with main:
         # Funnel Logic
@@ -309,13 +314,20 @@ with backend_tab:
         c3.metric("Net Profit", f"${net_profit:,.2f}")
         st.metric("ROI", f"{roi:.2f}%")
 
-        # ✅ Compounded ROI only in Yearly View
+        # ✅ Compounded ROI with reinvestment mode (Yearly only)
         if time_view == "Yearly":
-            monthly_roi_decimal = (net_profit / total_cost / 12) if total_cost else 0
-            compound_roi = ((1 + monthly_roi_decimal) ** 12 - 1) * 100 if monthly_roi_decimal > -1 else 0
+            base_monthly_roi = (net_profit / total_cost / 12) if total_cost else 0
+            if reinvest_mode == "Light":
+                r = base_monthly_roi * 0.25
+            elif reinvest_mode == "Moderate":
+                r = base_monthly_roi * 0.5
+            else:
+                r = base_monthly_roi  # Aggressive
+
+            compound_roi = ((1 + r) ** 12 - 1) * 100 if r > -1 else 0
             st.metric("Compounded ROI (12 mo)", f"{compound_roi:.2f}%")
 
-        # Funnel Visualization
+        # Funnel Chart
         st.markdown("### Funnel Drop-Off Chart")
         funnel_df = pd.DataFrame({
             "Stage": ["Re-engagement Pool", "Contacted", "Booked", "Showed", "Closed"],
@@ -324,7 +336,7 @@ with backend_tab:
         funnel_fig = px.bar(funnel_df, x="Stage", y="Volume", text_auto=True)
         st.plotly_chart(funnel_fig, use_container_width=True)
 
-        # Cost Breakdown Visualization
+        # Revenue Breakdown Chart
         st.markdown("### Revenue Breakdown: Cost vs Net Profit")
         breakdown_df = pd.DataFrame({
             "Component": ["Tech Stack", "Salaries", "Overhead", "Net Profit"],
