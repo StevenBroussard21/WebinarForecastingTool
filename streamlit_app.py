@@ -200,12 +200,11 @@ with forecast_tab:
             spend_labels.append('Salaries & Overhead')
             spend_values.append(salaries_overhead)
 
-        breakdown_fig = go.Figure(data=[
-            go.Bar(name='Spend', x=spend_labels, y=spend_values),
-            go.Bar(name='Revenue', x=['Estimated Revenue'], y=[revenue])
-        ])
-        breakdown_fig.update_layout(barmode='group', title="Campaign Spend vs Revenue")
-        st.plotly_chart(breakdown_fig, use_container_width=True)
+        cost_breakdown_bar = go.Figure()
+        cost_breakdown_bar.add_trace(go.Bar(name='Spend', x=spend_labels, y=spend_values))
+        cost_breakdown_bar.add_trace(go.Bar(name='Revenue', x=['Estimated Revenue'], y=[revenue]))
+        cost_breakdown_bar.update_layout(barmode='group', title="Campaign Spend vs Revenue")
+        st.plotly_chart(cost_breakdown_bar, use_container_width=True)
 
         st.markdown("### ROAS Performance")
         gauge_fig = go.Figure(go.Indicator(
@@ -234,6 +233,7 @@ with forecast_tab:
             pd.DataFrame([data]).to_csv(index=False).encode('utf-8'),
             file_name="webinar_forecast.csv"
         )
+
 
 
 # --------------------------
